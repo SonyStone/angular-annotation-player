@@ -1,0 +1,59 @@
+
+<div class="wrapper">
+  <canvas context2d [image]="image$ | push"></canvas>
+  <video #video="video" [fps]="fps$ | push" [src]="src$ | push" [currentTime]="player.currentTime_2$ | push"></video>
+</div>
+
+<div>
+  <input type="file" ngModel (ngModelChange)="videoInput$.next($event)">
+  <input type="file" ngModel (ngModelChange)="restore$.next($event)">
+
+  <input type="color" [formControl]="color">
+
+  <button (click)="video.play()">play</button>
+  <button (click)="video.pause()">pause</button>
+</div>
+
+<div>
+  <button (click)="clear$.next()">clear</button>
+</div>
+
+<div>
+  <span>frame rate: {{ fps$ | push }}</span>
+  <select  [formControl]="fps">
+    <option *ngFor="let item of frameRates"  [ngValue]="item.value">{{ item.name }}</option>
+  </select>
+  <input [value]="fps.value" type="number" [formControl]="fps">
+</div>
+
+<span>Time: {{ player.currentTime$ | push | timecode : (fps$ | push) }}</span>
+<span>Frame: {{ player.currentTime$ | push | frame : (fps$ | push) }}</span>
+
+<div>
+  <svg #timeline xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 30">
+    <rect x="0" y="10" width="800" height="20" fill="#007bff"/>
+
+    <g *ngFor="let item of (frames$ | push)" [attr.transform]="'translate(' + item[0] + ')'" (click)="event($event)" style="cursor: e-resize;">
+      <ellipse cx="0.5" cy="7" rx="3" ry="3" fill="#00ff00"/>|
+      <rect x="0" y="10" width="1" height="20" fill="#ffffff"/>
+    </g>
+
+    <g #slider [attr.transform]="'translate(' + (player.translate$ | push) + ')'" (click)="event($event)" style="cursor: e-resize;">
+    <rect x="-15" y="10" width="30" height="20"  />
+    <rect x="0" y="10" width="1" height="20" fill="#ffffff"/>
+  </g>
+
+  </svg>
+
+</div>
+
+<div>
+  <timeline [duration]="video.duration$ | push">
+    <slider [style.transform]="'translateX(' + (player.translate$ | push) + 'px)'" (positionChange)="event($event)"></slider>
+  </timeline>
+</div>
+
+<div>
+<button (click)="save$.next()" [file]="(file$ | push)">Save</button>
+</div>
+

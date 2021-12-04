@@ -1,0 +1,10 @@
+:host {
+  // --var: translateX
+  display: block;
+  position: absolute;
+  transform: translateX(21px);
+  width: 1px;
+  height: 30px;
+  background-color: #fff;
+  cursor: e-resize;
+}
