@@ -1,11 +1,11 @@
 import { combineLatest, fromEvent, groupBy, map, mergeMap, Observable, share, switchMap } from "rxjs";
 import { shareReplay } from "rxjs/operators";
 import { VideoTime } from "../interfaces/VideoTime";
-import { VideoDirective } from "./video.directive";
+import { VideoDirective, VideoService } from "./video.directive";
 
 export const scrollVideo = (
   element$: Observable<HTMLElement>,
-  video: VideoDirective,
+  video: VideoService,
   fps$: Observable<number>,
  ): Observable<VideoTime> => {
    const scroll$ = element$.pipe(switchMap((element) => fromEvent<WheelEvent>(element, 'wheel')));

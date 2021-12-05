@@ -1,83 +1,66 @@
-import { Component, ElementRef, Inject, Injectable, InjectionToken, Input } from "@angular/core";
-import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable } from "rxjs";
-import { TimelinePosition } from "../interfaces/TimelinePosition";
-import { VideoTime } from "../interfaces/VideoTime";
+import { KeyValue } from '@angular/common';
+import { Component, OnDestroy } from '@angular/core';
+import { map, merge, mergeAll, Observable, ReplaySubject, Subscription, switchAll, tap, withLatestFrom } from 'rxjs';
+
+import { store } from '../canvas/PaintData';
+import { Frame } from '../interfaces/Frame';
+import { PlayerService } from '../player.service';
 
 
-@Injectable()
-export class TimelineService {
 
-  rect = this.element.getBoundingClientRect();
-  width = this.rect.width
 
-  constructor(
-    private element: Element,
-    private duration$: Observable<VideoTime>,
-  ) {}
-
-  position(drag$: Observable<PointerEvent | MouseEvent>): Observable<TimelinePosition> {
-    return drag$.pipe(
-      map((pointerEvent) => {
-        const rect = this.rect;
-        const pointerX = (pointerEvent.x >=0) ? pointerEvent.x : 0;
-    
-        const start = rect.x;
-        const width = rect.width;
-    
-        const position = (pointerX - start);
-        const positionCorrection = (position <= 0)
-          ? 0
-          : (position >= width)
-            ? width
-            : position;
-    
-        return positionCorrection as TimelinePosition;
-      }),
-      distinctUntilChanged(),
-    );
-  }
-
-  videoTimeToPosition(
-    time$: Observable<VideoTime>,
-  ): Observable<TimelinePosition> {
-    return combineLatest([time$, this.duration$]).pipe(
-      map(([time, duration]) => ((time / duration * this.width) || 0) as TimelinePosition),
-    ); 
-  }
-
-  positionToVideoTime(
-    position$: Observable<TimelinePosition>,
-  ): Observable<VideoTime> {
-    return  combineLatest([position$, this.duration$]).pipe(
-      map(([x, duration]) => (x * duration  / this.width) as VideoTime),
-    );
-  }
-}
-
-const DURATION = new InjectionToken('duration')
 
 @Component({
   selector: 'timeline',
-  template: `<ng-content></ng-content>`,
+  templateUrl: './timeline.component.html',
   styleUrls: ['./timeline.component.scss'],
-  providers: [
-    { provide: DURATION, useValue: new BehaviorSubject(0) },
-    { 
-      provide: TimelineService,
-      deps: [ElementRef, DURATION],
-      useFactory: (elementRef: ElementRef<Element>, duration: Observable<VideoTime>) => new TimelineService(elementRef.nativeElement, duration),
-    },
-
-  ]
 })
-export class TimelineComponent {
-  @Input() set duration(duration: VideoTime | null) {
-    if (duration) {
-      this.duration$.next(duration);
-    }
+export class TimelineComponent implements OnDestroy {
+
+  readonly time$ = this.player.frame$;
+
+  readonly duration$ = this.player.totalFrames$;
+
+  lastMove = new ReplaySubject<Observable<[Frame, Frame]>>()
+  lastMove$ = this.lastMove.pipe(mergeAll());
+
+  data$ = store<Map<Frame, ImageData>>(
+    merge(
+      this.player.store$.pipe(
+        map((frames) => () => new Map(frames)),
+      ),
+      this.lastMove$.pipe(
+        map(([oldFrame, newFrame]) => (store: Map<Frame, ImageData>) => {
+          const value = store.get(oldFrame)!;
+          store.delete(oldFrame);
+
+          store.set(newFrame, value);
+    
+          return store;
+        }),
+      )
+    ),
+    new Map(),
+  ).pipe(
+
+  )
+
+  trackByFn(_: number, item: KeyValue<Frame, ImageData>) {
+    return item.value;
   }
 
+  private subscription = new Subscription();
+
   constructor(
-    @Inject(DURATION) private duration$: BehaviorSubject<VideoTime>,
-  ) {}
+    readonly player: PlayerService,
+  ) {
+    this.player.move.next(this.lastMove$.pipe(
+      withLatestFrom(this.data$),
+      map(([_, data]) => data),
+    ))
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
 }

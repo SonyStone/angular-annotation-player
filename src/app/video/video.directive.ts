@@ -1,7 +1,22 @@
-import { Directive, ElementRef, Inject, Injectable, InjectionToken, Input } from "@angular/core";
-import { animationFrameScheduler, BehaviorSubject, combineLatest, distinctUntilChanged, EMPTY, fromEvent, map, Observable, shareReplay, startWith, Subject, switchMapTo, takeUntil, tap, timer } from "rxjs";
-import { VideoTime } from "../interfaces/VideoTime";
-import { videoTimeToFrame } from "./videoTimeToFrame";
+import { Directive, ElementRef, Inject, Injectable, OnDestroy } from '@angular/core';
+import {
+  animationFrameScheduler,
+  combineLatest,
+  fromEvent,
+  map,
+  Observable,
+  shareReplay,
+  startWith,
+  switchMapTo,
+  takeUntil,
+  tap,
+  timer,
+} from 'rxjs';
+
+import { Frame } from '../interfaces/Frame';
+import { VideoTime } from '../interfaces/VideoTime';
+import { PlayerService } from '../player.service';
+import { videoTimeToFrame } from './videoTimeToFrame';
 
 const VIDEO_START_TIME: VideoTime = 0 as VideoTime;
 
@@ -11,7 +26,9 @@ const VIDEO_START_TIME: VideoTime = 0 as VideoTime;
  * [events](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement#events)
  */
 @Injectable()
-export class VideoService {
+export class VideoService implements OnDestroy {
+
+  video = this.element.nativeElement;
 
   play$ = fromEvent<Event>(this.video, 'play');
 
@@ -42,7 +59,6 @@ export class VideoService {
   )
 
   currentTime$: Observable<VideoTime> = this.play$.pipe(
-
     switchMapTo(timer(0, 0, animationFrameScheduler).pipe(
       map(() => this.currentTime()),
 
@@ -52,22 +68,36 @@ export class VideoService {
     shareReplay(),
   )
 
-  totalFrames$ = this.fps$.pipe(
-    map((fps) => this.video.duration * fps)
+  totalFrames$ = combineLatest([this.player.fps$, this.duration$]).pipe(
+    map(([fps, duration]) => videoTimeToFrame(duration, fps))
   )
 
   currentFrame$ = combineLatest([
     this.currentTime$,
-    this.fps$,
+    this.player.fps$,
   ]).pipe(
     map(([time, fps]) => videoTimeToFrame(time, fps)),
     shareReplay(),
   );
 
+  private subscription = this.player.currentTime_2$
+    .subscribe((currentTime) => {
+      this.video.currentTime = currentTime;
+    })
+
   constructor(
-    readonly video: HTMLVideoElement,
-    private readonly fps$: Observable<number>,
-  ) {}
+    private readonly player: PlayerService,
+    readonly element: ElementRef<HTMLVideoElement>,
+  ) {
+    this.player.duration.next(this.duration$);
+    this.player.totalFrames.next(this.totalFrames$);
+    this.player.currentTime.next(this.currentTime$);
+    this.player.video.next(this);
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
 
   play() {
     this.video.play();
@@ -86,31 +116,14 @@ export class VideoService {
   }
 }
 
-const FPS = new InjectionToken<Observable<number>>('fps');
-
-const DEFAULT_FRAME_RATE = 29.97;
-
 @Directive({
   selector: 'video',
   exportAs: 'video',
   providers: [
-    {
-      provide: FPS, useValue: new BehaviorSubject(DEFAULT_FRAME_RATE),
-    },
-    { 
-      provide: VideoService,
-      deps: [ElementRef, FPS],
-      useFactory: (elementRef: ElementRef<HTMLVideoElement>, fps: Observable<number>) => new VideoService(elementRef.nativeElement, fps),
-    }
+    VideoService,
   ],
 })
 export class VideoDirective {
-
-  @Input() set fps(fps: number | null) {
-    if (fps) {
-      this.fps$.next(fps);
-    }
-  }
 
   nativeElement = this.elementRef.nativeElement;
 
@@ -118,7 +131,6 @@ export class VideoDirective {
   currentTime$ = this.video.currentTime$;
 
   constructor(
-    @Inject(FPS) private readonly fps$: Subject<number>,
     @Inject(VideoService) private readonly video: VideoService,
     @Inject(ElementRef) private readonly elementRef: ElementRef<HTMLVideoElement>
   ) {}

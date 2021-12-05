@@ -1,62 +1,68 @@
-import { DOCUMENT } from "@angular/common";
-import { Component, ElementRef, Inject, Injectable, InjectionToken, Input, Output } from "@angular/core";
-import { BehaviorSubject, connectable, Observable } from "rxjs";
-import { pointerdrag_2 } from "../events/pointer";
-import { VideoTime } from "../interfaces/VideoTime";
-import { TimelineService } from "./timeline.component";
+import { Directive, ElementRef, Input, OnDestroy, Renderer2 } from '@angular/core';
+import { combineLatest, map, merge, pipe, Subscription, switchMapTo, takeUntil, withLatestFrom } from 'rxjs';
 
-@Injectable()
-export class SliderService {
-  rect = this.element.getBoundingClientRect();
-  width = this.rect.width
+import { pointerdown, pointermove, pointerup } from '../events/pointer';
+import { TimelinePosition } from '../interfaces/TimelinePosition';
+import { VideoTime } from '../interfaces/VideoTime';
+import { PlayerService } from '../player.service';
 
-  position$ = this.timeline.position(pointerdrag_2(this.element, this.dragZone))
+@Directive({
+  selector: '[slider]'
+})
+export class SliderDirective implements OnDestroy {
+
+  private element = this.elementRef.nativeElement;
+
+  @Input('slider') rect!: DOMRect;
+
+  private down$ = pointerdown(this.element);
+  private move$ = pointermove(this.element);
+
+  private toFrame = pipe(
+    withLatestFrom<PointerEvent, [VideoTime]>(this.player.duration$),
+    map(([pointerEvent, duration]) => {
+      const pointerX = pointerEvent.offsetX;
+      const width = this.rect.width;
+
+      const position = (pointerEvent.offsetX <= 0)
+        ? 0
+        : (pointerX >= width)
+          ? width
+          : pointerX as TimelinePosition;
+  
+      return position * duration  / width as VideoTime
+    }),
+  )
+
+  drag$ = this.down$.pipe(switchMapTo(this.move$.pipe(takeUntil(pointerup(this.element))))).pipe(
+    this.toFrame,
+  );
+  
+  private subscription = new Subscription();
 
   constructor(
-    private element: Element,
-    private dragZone: Element,
-    private timeline: TimelineService,
-  ) {}
-}
+    private readonly player: PlayerService,
+    private render: Renderer2,
+    private elementRef: ElementRef<Element>,
+  ) {
+    console.log(`slider created!`);
 
-const POSITION = new InjectionToken('position')
+    this.player.sliderTime.next(this.drag$);
 
-@Component({
-  selector: 'slider',
-  exportAs: 'slider',
-  template: ``,
-  styleUrls: ['./slider.component.scss'],
-  providers: [
-    { provide: POSITION, useValue: new BehaviorSubject(0) },
-    {
-      provide: SliderService,
-      deps: [ElementRef, POSITION, DOCUMENT, TimelineService],
-      useFactory: (
-        elementRef: ElementRef<Element>,
-        position$: Observable<VideoTime>,
-        document: Document,
-        timeline: TimelineService
-      ) => new SliderService(
-        elementRef.nativeElement,
-        document.body,
-        timeline,
-        // position$, 
-      )
-    },
-  ]
-})
-export class SliderComponent {
-
-  @Input() set position(position: VideoTime | null) {
-    if (position) {
-      this.position$.next(position);
-    }
+    this.subscription.add(combineLatest([
+      merge(
+        this.drag$,
+        this.player.currentTime$,
+        this.player.scroll$,
+      ),
+      this.player.duration$]).pipe(
+      map(([time, duration]) => ((time / duration * this.rect.width) || 0) as TimelinePosition),
+    ).subscribe((translate) => {
+      this.render.setAttribute(this.elementRef.nativeElement, 'transform', `translate(${translate})`);
+    }));
   }
 
-  @Output() positionChange = connectable(this.slider.position$);
-
-  constructor(
-    @Inject(SliderService) private slider: SliderService,
-    @Inject(POSITION) private position$: BehaviorSubject<VideoTime>,
-  ) {}
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
 }

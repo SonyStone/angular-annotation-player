@@ -1,7 +1,8 @@
 :host {
   display: block;
-  position: relative;
+  // position: relative;
   width: 800px;
-  height: 20px;
-  background-color: blue;
+  // height: 20px;
+  // background-color: blue;
+  touch-action: none;
 }

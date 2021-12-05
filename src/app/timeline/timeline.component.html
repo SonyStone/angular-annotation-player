@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 800 30">
+  <rect timeline #timeline="timeline"
+        x="0"
+        y="10"
+        width="800"
+        height="20"
+        fill="#007bff" />
+
+  <g #slider
+     [slider]="timeline.rect"
+     style="cursor: e-resize;">
+    <rect x="-15"
+          y="10"
+          width="30"
+          height="20" />
+    <rect x="0"
+          y="10"
+          width="1"
+          height="20"
+          fill="#ffffff" />
+  </g>
+
+  <g *ngFor="let item of (data$ | push | keyvalue); trackBy: trackByFn; let i = index"
+     [comment]="item.key"
+     [rect]="timeline.rect"
+     style="cursor: e-resize;">
+    <ellipse cx="0.5"
+             cy="7"
+             rx="3"
+             ry="3"
+             fill="#00ff00" />
+    <rect x="0"
+          y="10"
+          width="1"
+          height="20"
+          fill="#ffffff" />
+  </g>
+</svg>

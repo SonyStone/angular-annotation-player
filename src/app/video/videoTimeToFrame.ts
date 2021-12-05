@@ -5,3 +5,8 @@ export const videoTimeToFrame = (
   time: VideoTime,
   fps: number
 ): Frame => Math.floor(time * fps) as Frame;
+
+export const frameToVideoTime = (
+  frame: Frame,
+  fps: number
+): VideoTime => frame / fps as VideoTime;
