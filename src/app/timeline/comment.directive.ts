@@ -1,15 +1,15 @@
-import { Directive, ElementRef, Input, OnDestroy, Renderer2 } from '@angular/core';
+import { Directive, ElementRef, Inject, Input, OnDestroy, Renderer2 } from '@angular/core';
 import {
   combineLatest,
   first,
   map,
   merge,
+  Observable,
   pipe,
   Subject,
   Subscription,
   switchMapTo,
   takeUntil,
-  tap,
   withLatestFrom,
 } from 'rxjs';
 
@@ -17,6 +17,7 @@ import { pointerdown, pointermove, pointerup } from '../events/pointer';
 import { Frame } from '../interfaces/Frame';
 import { TimelinePosition } from '../interfaces/TimelinePosition';
 import { PlayerService } from '../player.service';
+import { VIDEO_TOTAL_FRAMES } from '../video/video-total-frames';
 import { TimelineComponent } from './timeline.component';
 
 
@@ -41,7 +42,7 @@ export class CommentDirective implements OnDestroy {
   private move$ = pointermove(this.element);
 
   private toFrame = pipe(
-    withLatestFrom<PointerEvent, [Frame, DOMRect]>(this.player.totalFrames$, this.rect$),
+    withLatestFrom<PointerEvent, [Frame, DOMRect]>(this.totalFrames$, this.rect$),
     map(([pointerEvent, duration, rect]) => {
       const pointerX = pointerEvent.offsetX;
       const width = rect.width;
@@ -74,6 +75,7 @@ export class CommentDirective implements OnDestroy {
     private readonly timeline: TimelineComponent,
     private readonly render: Renderer2,
     private readonly elementRef: ElementRef<Element>,
+    @Inject(VIDEO_TOTAL_FRAMES) private readonly totalFrames$: Observable<Frame>,
   ) {
     console.log(`comment created!`);
 
@@ -84,7 +86,7 @@ export class CommentDirective implements OnDestroy {
 
     this.subscription.add(
       combineLatest([
-        merge(this.drag$, this.frame$), this.player.totalFrames$, this.rect$])
+        merge(this.drag$, this.frame$), this.totalFrames$, this.rect$])
       .pipe(
       map(([time, duration, rect]) => ((time / duration * rect.width) || 0) as TimelinePosition),
     ).subscribe((translate) => {

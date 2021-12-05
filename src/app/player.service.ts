@@ -1,74 +1,48 @@
-import { DOCUMENT } from '@angular/common';
-import { Inject, Injectable } from '@angular/core';
-import { combineLatest, distinctUntilChanged, EMPTY, merge, Observable, of, ReplaySubject, Subject } from 'rxjs';
-import { map, shareReplay, switchAll, switchMap, switchMapTo, tap, withLatestFrom } from 'rxjs/operators';
+import { Inject, Injectable, OnDestroy } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { BehaviorSubject, merge, Observable, Subject } from 'rxjs';
+import { filter, map, shareReplay, switchAll, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 
-import { CanvasContext2dDirective } from './canvas-2d.directive';
-import { Canvas } from './canvas/Canvas';
+import { CANVAS_CONTEXT } from './canvas/canvas-context';
+import { CANVAS_PAINT } from './canvas/canvas-paint';
 import { FileHandler } from './canvas/FileHandler';
-import { paint } from './canvas/paint';
-import { store } from './canvas/PaintData';
-import { AnnotationStore } from './interfaces/AnnotationStore.interface';
+import { store } from './canvas/store';
+import { COMMENT_RESTORE } from './comments/comment-restore';
+import { FILE_HANDLER } from './comments/file-handler';
 import { Frame } from './interfaces/Frame';
 import { VideoTime } from './interfaces/VideoTime';
-import { scrollVideo } from './video/scrollVideo';
-import { VideoService } from './video/video.directive';
-import { frameToVideoTime, videoTimeToFrame } from './video/videoTimeToFrame';
+import { VIDEO_CURRENT_FRAME } from './video/video-current-frame';
+import { VIDEO_CURRENT_TIME } from './video/video-current-time';
+import { VIDEO_FPS } from './video/video-fps';
 
 
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
+export class FrameRateService implements OnDestroy {
+  control = new FormControl(this.fps.value);
+  private subscription = this.control.valueChanges.pipe(
+    filter((fps) => fps > 0 && fps < 9000),
+  ).subscribe((fps) => {
+    this.fps.next(fps)
+  })
+
+  constructor(
+    @Inject(VIDEO_FPS) private readonly fps: BehaviorSubject<number>,
+  ) {}
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
+}
+
+
+@Injectable({
+  providedIn: 'root',
+})
 export class PlayerService {
 
-  readonly duration = new ReplaySubject<Observable<VideoTime>>();
-  readonly duration$ = this.duration.pipe(
-    switchAll(),
-    tap((e) => {
-      console.log(`duration`, e);
-    }),
-    shareReplay(),
-  );
-
-  readonly totalFrames = new ReplaySubject<Observable<Frame>>();
-  readonly totalFrames$ = this.totalFrames.pipe(
-    switchAll(),
-    tap((e) => {
-      console.log(`totalFrames`, e);
-    }),
-    shareReplay(),
-  );
-
-  readonly fps = new ReplaySubject<Observable<number>>();
-  readonly fps$: Observable<number> = this.fps.pipe(
-    switchAll(),
-    tap((e) => {
-      console.log(`fps`, e);
-    }),
-    shareReplay(),
-  );
-
-  readonly color = new ReplaySubject<Observable<string>>();
-  readonly color$: Observable<string> = this.color.pipe(
-    switchAll(),
-    tap((e) => {
-      console.log(`color`, e);
-    }),
-    shareReplay(),
-  );
-
-  readonly currentTime = new ReplaySubject<Observable<VideoTime>>();
-  readonly currentTime$: Observable<VideoTime> = this.currentTime.pipe(
-    switchAll(),
-    shareReplay(),
-  );
-  
-  readonly sliderTime = new ReplaySubject<Observable<VideoTime>>();
-  private readonly sliderTime$: Observable<VideoTime> = this.sliderTime.pipe(switchAll());
-
-  readonly video = new ReplaySubject<VideoService>();
-  readonly video$: Observable<VideoService> = this.video;
-
   save$ = new Subject<void>();
-  restore$ = new Subject<File>();
   clear$ = new Subject<void>();
   remove$ = new Subject<Frame>();
 
@@ -78,68 +52,26 @@ export class PlayerService {
     shareReplay(),
   );
 
-  canvas$ = new ReplaySubject<CanvasContext2dDirective>();
-
   constructor(
-    @Inject(DOCUMENT) private readonly document: Document
+    @Inject(CANVAS_CONTEXT) readonly ctx$: Observable<CanvasRenderingContext2D>,
+    @Inject(CANVAS_PAINT) readonly paint$: Observable<ImageData>,
+    @Inject(VIDEO_FPS) readonly fps$: Observable<number>,
+    @Inject(VIDEO_CURRENT_TIME) readonly currentTime$: Observable<VideoTime>,
+    @Inject(VIDEO_CURRENT_FRAME) readonly currentFrame$: Observable<Frame>,
+    @Inject(COMMENT_RESTORE) readonly restore$: Observable<Map<Frame, ImageData>>,
+    @Inject(FILE_HANDLER) readonly fileHandler$: Observable<FileHandler>,
   ) {}
-
-  scroll$ = this.video$.pipe(
-    switchMap((video) => scrollVideo(of(this.document.body), video, this.fps$)),
-  );
-
-
-  /** Текущее время в <video> */
-  currentTime_1$: Observable<VideoTime> = merge(
-    this.currentTime$,
-    this.sliderTime$,
-    this.scroll$,
-  ).pipe(
-    shareReplay(),
-  );
-
-  currentTime_2$: Observable<VideoTime> = merge(
-    this.sliderTime$,
-    this.scroll$,
-  ).pipe(
-    shareReplay(),
-  );
-
-  /** Вывод Frame */
-  frame$: Observable<Frame> = combineLatest([this.currentTime_1$, this.fps$]).pipe(
-    map(([currentTime, fps]) => videoTimeToFrame(currentTime, fps)),
-    shareReplay(),
-  );
-
-
-  offscreenCanvas$ = this.canvas$.pipe(
-    map(({ canvas }) => new Canvas(canvas.offsetWidth, canvas.offsetHeight))
-  );
-
-  canvasPaint$ = combineLatest([this.color$, this.canvas$]).pipe(
-    switchMap(([color, { canvas, ctx }]) => paint(canvas, ctx, color).pipe(
-      map(() => ctx.getImageData(0, 0, canvas.width, canvas.height)),
-    )),
-  );
-
-  fileHandler$ = this.offscreenCanvas$.pipe(
-    map((offscreenCanvas) => new FileHandler(offscreenCanvas))
-  );
 
   store$: Observable<Map<Frame, ImageData>> = store(
     merge(
       merge(
         this.move$,
-        // this.restore$.pipe(
-        //   withLatestFrom(this.fileHandler$),
-        //   switchMap(([file, fileHandler]) => fileHandler.restore(file)),
-        // ),
+        this.restore$,
       ).pipe(
         map((data) => () => data),
       ),
-      this.canvas$.pipe(
-        switchMap((canvas) => canvas.paintEnd$),
-        withLatestFrom(this.frame$),
+      this.paint$.pipe(
+        withLatestFrom(this.currentFrame$),
         map(([imageData, frame]) => (store: Map<Frame, ImageData>) => {
           store.set(frame, imageData);
     
@@ -162,13 +94,10 @@ export class PlayerService {
     shareReplay(),
   );
 
-
-
   file$ = this.save$.pipe(
-    switchMapTo(EMPTY),
-    // withLatestFrom(this.store$, this.fileHandler$),
-    // switchMap(([_, data, fileHandler]) => fileHandler.save(data)),
-    // shareReplay(),
+    withLatestFrom(this.store$, this.fileHandler$),
+    switchMap(([_, data, fileHandler]) => fileHandler.save(data)),
+    shareReplay(),
   );
 
 }

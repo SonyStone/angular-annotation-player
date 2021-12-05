@@ -1,13 +1,10 @@
 import { KeyValue } from '@angular/common';
 import { Component, OnDestroy } from '@angular/core';
-import { map, merge, mergeAll, Observable, ReplaySubject, Subscription, switchAll, tap, withLatestFrom } from 'rxjs';
+import { map, merge, mergeAll, Observable, ReplaySubject, Subscription, withLatestFrom } from 'rxjs';
 
-import { store } from '../canvas/PaintData';
+import { store } from '../canvas/store';
 import { Frame } from '../interfaces/Frame';
 import { PlayerService } from '../player.service';
-
-
-
 
 
 @Component({
@@ -16,10 +13,6 @@ import { PlayerService } from '../player.service';
   styleUrls: ['./timeline.component.scss'],
 })
 export class TimelineComponent implements OnDestroy {
-
-  readonly time$ = this.player.frame$;
-
-  readonly duration$ = this.player.totalFrames$;
 
   lastMove = new ReplaySubject<Observable<[Frame, Frame]>>()
   lastMove$ = this.lastMove.pipe(mergeAll());

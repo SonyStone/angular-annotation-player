@@ -1,19 +1,16 @@
-<div class="wrapper">
-  <canvas context2d></canvas>
+<div class="wrapper" scroll>
+  <canvas paint></canvas>
   <video #video="video"
          [src]="src$ | push"></video>
 </div>
 
 <div>
   <input type="file"
+         multiple
          ngModel
-         (ngModelChange)="videoInput$.next($event)">
-  <input type="file"
-         ngModel
-         (ngModelChange)="player.restore$.next($event)">
+         (ngModelChange)="filesInput.next($event)">
 
-  <input type="color"
-         [formControl]="color">
+  <color-selector></color-selector>
 
   <button (click)="video.play()">play</button>
   <button (click)="video.pause()">pause</button>
@@ -24,28 +21,28 @@
 </div>
 
 <div>
-  <span>frame rate: {{ player.fps$ | push }}</span>
-  <select [formControl]="fps">
+  <span>frame rate: {{ fps$ | push }}</span>
+  <select [formControl]="frameRate.control">
     <option *ngFor="let item of frameRates"
             [ngValue]="item.value">{{ item.name }}</option>
   </select>
-  <input [value]="fps.value"
+  <input [value]="frameRate.control.value"
          type="number"
-         [formControl]="fps">
+         [formControl]="frameRate.control">
 </div>
 
 
 <span>Time:
 
-  <ng-container>{{ player.currentTime_1$ | push | timecode : (player.fps$ | push) }}</ng-container>
+  <ng-container>{{ currentTime$ | push | timecode : (fps$ | push) }}</ng-container>
 </span>
 <span>Frame:
 
-  <ng-container>{{ player.frame$ | push }}</ng-container>
+  <ng-container>{{ currentFrame$ | push }}</ng-container>
 
   /
 
-  <ng-container>{{ player.totalFrames$ | push }}</ng-container>
+  <ng-container>{{ totalFrames$ | push }}</ng-container>
 </span>
 
 

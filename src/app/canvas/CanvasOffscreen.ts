@@ -1,4 +1,4 @@
-export class Canvas {
+export class CanvasOffscreen {
   canvas = new OffscreenCanvas(this.w, this.h);
   readonly ctx = this.canvas.getContext('2d')! as any as CanvasRenderingContext2D;
 

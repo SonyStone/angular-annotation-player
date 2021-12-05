@@ -3,7 +3,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
-import { CanvasContext2dDirective } from './canvas-2d.directive';
+import { CanvasPaintDirective } from './canvas/canvas-paint.directive';
+import { ColorSelectorComponent } from './color-selector/color-selector.component';
 import { FileDownloadDirective } from './file-download.directive';
 import { FileDropDirective } from './file-drop.directive';
 import { FileValueAccessor } from './file_value_accessor';
@@ -14,6 +15,7 @@ import { CommentDirective } from './timeline/comment.directive';
 import { SliderDirective } from './timeline/slider.directive';
 import { TimelineComponent } from './timeline/timeline.component';
 import { TimelineDirective } from './timeline/timeline.directive';
+import { ScrollDirective } from './video/video-scroll.directive';
 import { VideoDirective } from './video/video.directive';
 
 @NgModule({
@@ -27,7 +29,7 @@ import { VideoDirective } from './video/video.directive';
     FileValueAccessor,
     FileDropDirective,
     AppComponent,
-    CanvasContext2dDirective,
+    CanvasPaintDirective,
     FileDownloadDirective,
     VideoDirective,
     [
@@ -39,6 +41,10 @@ import { VideoDirective } from './video/video.directive';
       SliderDirective,
       CommentDirective,
       TimelineDirective,
+    ],
+    [
+      ColorSelectorComponent,
+      ScrollDirective,
     ],
   ],
   bootstrap:    [

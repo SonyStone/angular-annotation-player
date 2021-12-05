@@ -1,11 +1,17 @@
-import { Component, ViewChild } from '@angular/core';
-import { FormControl } from '@angular/forms';
-import { DomSanitizer } from '@angular/platform-browser';
+import { Component, Inject, ViewChild } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import { filter, map, shareReplay, startWith } from 'rxjs/operators';
 
-import { CanvasContext2dDirective } from './canvas-2d.directive';
-import { PlayerService } from './player.service';
+import { CanvasPaintDirective } from './canvas/canvas-paint.directive';
+import { FILES_CHANGE } from './files-change';
+import { Frame } from './interfaces/Frame';
+import { VideoTime } from './interfaces/VideoTime';
+import { FrameRateService, PlayerService } from './player.service';
+import { VIDEO_CURRENT_FRAME } from './video/video-current-frame';
+import { VIDEO_CURRENT_TIME } from './video/video-current-time';
+import { VIDEO_FILE_CHANGE } from './video/video-file-change';
+import { VIDEO_FPS } from './video/video-fps';
+import { VIDEO_SRC } from './video/video-src';
+import { VIDEO_TOTAL_FRAMES } from './video/video-total-frames';
 import { VideoDirective } from './video/video.directive';
 
 
@@ -20,51 +26,27 @@ const FRAME_RATES = [
   { name: 'high: 60', value: 60 },
 ];
 
-const DEFAULT_COLOR = '#ffffff';
-const DEFAULT_FRAME_RATE = 29.97;
-
-
 @Component({
   selector: 'my-app',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  providers: [
-    PlayerService,
-  ],
 })
 export class AppComponent {
   frameRates = FRAME_RATES;
 
   @ViewChild(VideoDirective, { static: true }) video!: VideoDirective;
-  @ViewChild(CanvasContext2dDirective, { static: true }) canvas!: CanvasContext2dDirective;
+  @ViewChild(CanvasPaintDirective, { static: true }) canvas!: CanvasPaintDirective;
 
-
-  color = new FormControl(DEFAULT_COLOR);
-  color$: Observable<string> = this.color.valueChanges.pipe(
-    startWith(this.color.value),
-    shareReplay()
-  );
-
-  fps = new FormControl(DEFAULT_FRAME_RATE);
-  fps$: Observable<number> = this.fps.valueChanges.pipe(
-    startWith(this.fps.value),
-    filter((fps) => fps > 0 && fps < 9000),
-    shareReplay(),
-  );
-
-  videoInput$ = new Subject<File>();
-  src$ = this.videoInput$.pipe(
-    map((file) => URL.createObjectURL(file)),
-    map((src) => this.sanitizer.bypassSecurityTrustUrl(src) as string),
-    startWith('https://www.html5rocks.com/tutorials/video/basics/Chrome_ImF.ogv'),
-    // startWith('https://mdn.github.io/learning-area/javascript/apis/video-audio/finished/video/sintel-short.mp4')
-  )
 
   constructor(
+    readonly frameRate: FrameRateService,
     readonly player: PlayerService,
-    private readonly sanitizer: DomSanitizer,
-  ) {
-    this.player.color.next(this.color$);
-    this.player.fps.next(this.fps$);
-  }
+    @Inject(FILES_CHANGE) readonly filesInput: Subject<FileList>,
+    @Inject(VIDEO_FILE_CHANGE) readonly videoInput$: Subject<File>,
+    @Inject(VIDEO_SRC) readonly src$: Observable<string>,
+    @Inject(VIDEO_FPS) readonly fps$: Observable<number>,
+    @Inject(VIDEO_CURRENT_FRAME) readonly currentFrame$: Observable<Frame>,
+    @Inject(VIDEO_CURRENT_TIME) readonly currentTime$: Observable<VideoTime>,
+    @Inject(VIDEO_TOTAL_FRAMES) readonly totalFrames$: Observable<Frame>,
+  ) {}
 }
