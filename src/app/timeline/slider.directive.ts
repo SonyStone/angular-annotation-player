@@ -1,24 +1,10 @@
 import { Directive, ElementRef, Inject, Input, OnDestroy, Renderer2 } from '@angular/core';
-import {
-  combineLatest,
-  map,
-  merge,
-  Observable,
-  pipe,
-  Subject,
-  Subscription,
-  switchMapTo,
-  takeUntil,
-  withLatestFrom,
-} from 'rxjs';
+import { combineLatest, map, merge, pipe, Subscription, switchMapTo, takeUntil, withLatestFrom } from 'rxjs';
 
 import { pointerdown, pointermove, pointerup } from '../events/pointer';
-import { Frame } from '../interfaces/Frame';
 import { TimelinePosition } from '../interfaces/TimelinePosition';
 import { VideoTime } from '../interfaces/VideoTime';
-import { VIDEO_CURRENT_TIME, VIDEO_CURRENT_TIME_CHANGE } from '../video/video-current-time';
-import { VIDEO_DURATION } from '../video/video-duration';
-import { VIDEO_TOTAL_FRAMES } from '../video/video-total-frames';
+import { VideoService } from '../video/video.service';
 
 
 @Directive({
@@ -34,8 +20,8 @@ export class SliderDirective implements OnDestroy {
   private move$ = pointermove(this.element);
 
   private toFrame = pipe(
-    withLatestFrom<PointerEvent, [Frame, VideoTime]>(this.totalFrames$, this.duration$),
-    map(([pointerEvent, totalFrames, duration]) => {
+    withLatestFrom<PointerEvent, [VideoTime]>(this.video.duration$),
+    map(([pointerEvent, duration]) => {
       const pointerX = pointerEvent.offsetX;
       const width = this.rect.width;
 
@@ -45,10 +31,7 @@ export class SliderDirective implements OnDestroy {
           ? width
           : pointerX as TimelinePosition;
   
-      return [
-        Math.floor(position * totalFrames  / width) as Frame,
-        position * duration  / width as VideoTime,
-      ] as [Frame, VideoTime]
+      return (position * duration  / width) as VideoTime;
     }),
   )
 
@@ -61,28 +44,18 @@ export class SliderDirective implements OnDestroy {
   constructor(
     private render: Renderer2,
     private elementRef: ElementRef<Element>,
-    @Inject(VIDEO_CURRENT_TIME) private readonly currentTime$: Observable<VideoTime>,
-    @Inject(VIDEO_TOTAL_FRAMES) private readonly totalFrames$: Observable<Frame>,
-    @Inject(VIDEO_DURATION) private readonly duration$: Observable<VideoTime>,
-    @Inject(VIDEO_CURRENT_TIME_CHANGE) private readonly currentTimeChange: Subject<VideoTime>,
+    @Inject(VideoService) private readonly video: VideoService,
   ) {
     console.log(`slider created!`);
 
-    this.subscription.add(this.drag$.pipe(
-      map(([_, time]) => time)
-    ).subscribe((time) => {
-      this.currentTimeChange.next(time);
-    }));
+    this.subscription.add(this.drag$.subscribe((time) => this.video.currentTimeChange$.next(time)));
 
     this.subscription.add(combineLatest([
       merge(
-        this.drag$.pipe(
-          map(([_, time]) => time),
-        ),
-        this.currentTime$,
-        // this.player.scroll$,
+        this.drag$,
+        this.video.currentTime$,
       ),
-      this.duration$]).pipe(
+      this.video.duration$]).pipe(
       map(([time, duration]) => ((time / duration * this.rect.width) || 0) as TimelinePosition),
     ).subscribe((translate) => {
       this.render.setAttribute(this.elementRef.nativeElement, 'transform', `translate(${translate})`);

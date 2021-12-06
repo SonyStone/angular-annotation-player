@@ -10,12 +10,14 @@ export interface BrushConfig {
   ctx: BrushContext;
   color: string;
   size: number;
+  globalCompositeOperation: string;
 }
 
 export const defaultBrushConfig = Object.freeze<BrushConfig>({
   ctx: dummyCanvasContext,
   color: '#000',
   size: 10,
+  globalCompositeOperation: 'source-over',
 });
 
 export interface BrushStrokeState {
@@ -44,6 +46,7 @@ export const stroke: BrushStroke = {
     }
 
     config.ctx.save();
+    config.ctx.globalCompositeOperation = config.globalCompositeOperation;
     config.ctx.fillStyle = config.color;
     drawCircle(config.ctx, stylusStateToCircle(curr, config.size));
     config.ctx.restore();
@@ -69,6 +72,7 @@ function getDrawingContext(
       const c1 = stylusStateToCircle(state.prev, config.size);
       const c2 = stylusStateToCircle(curr, config.size);
       config.ctx.save();
+      config.ctx.globalCompositeOperation = config.globalCompositeOperation;
       config.ctx.fillStyle = config.color;
       drawCapsule(config.ctx, c1, c2);
       copyStylusState(state.prev, curr);
@@ -78,6 +82,7 @@ function getDrawingContext(
       const c1 = stylusStateToCircle(state.prev, config.size);
       const c2 = stylusStateToCircle(curr, config.size);
       config.ctx.save();
+      config.ctx.globalCompositeOperation = config.globalCompositeOperation;
       config.ctx.fillStyle = config.color;
       drawCapsule(config.ctx, c1, c2);
       copyStylusState(state.prev, curr);

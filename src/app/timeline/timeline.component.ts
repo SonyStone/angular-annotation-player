@@ -1,42 +1,21 @@
 import { KeyValue } from '@angular/common';
-import { Component, OnDestroy } from '@angular/core';
-import { map, merge, mergeAll, Observable, ReplaySubject, Subscription, withLatestFrom } from 'rxjs';
+import { Component, Inject, OnDestroy } from '@angular/core';
+import { map, Subscription, withLatestFrom } from 'rxjs';
 
-import { store } from '../canvas/store';
+import { CommentsService } from '../comments/comments.service';
 import { Frame } from '../interfaces/Frame';
-import { PlayerService } from '../player.service';
+import { TimelineCommentsService } from './timeline-comment-store';
 
 
 @Component({
   selector: 'timeline',
   templateUrl: './timeline.component.html',
   styleUrls: ['./timeline.component.scss'],
+  providers: [
+    TimelineCommentsService,
+  ],
 })
 export class TimelineComponent implements OnDestroy {
-
-  lastMove = new ReplaySubject<Observable<[Frame, Frame]>>()
-  lastMove$ = this.lastMove.pipe(mergeAll());
-
-  data$ = store<Map<Frame, ImageData>>(
-    merge(
-      this.player.store$.pipe(
-        map((frames) => () => new Map(frames)),
-      ),
-      this.lastMove$.pipe(
-        map(([oldFrame, newFrame]) => (store: Map<Frame, ImageData>) => {
-          const value = store.get(oldFrame)!;
-          store.delete(oldFrame);
-
-          store.set(newFrame, value);
-    
-          return store;
-        }),
-      )
-    ),
-    new Map(),
-  ).pipe(
-
-  )
 
   trackByFn(_: number, item: KeyValue<Frame, ImageData>) {
     return item.value;
@@ -45,12 +24,17 @@ export class TimelineComponent implements OnDestroy {
   private subscription = new Subscription();
 
   constructor(
-    readonly player: PlayerService,
+    @Inject(TimelineCommentsService) readonly timelineComments: TimelineCommentsService,
+    @Inject(CommentsService) private readonly comments: CommentsService,
   ) {
-    this.player.move.next(this.lastMove$.pipe(
-      withLatestFrom(this.data$),
-      map(([_, data]) => data),
-    ))
+    this.subscription.add(
+      timelineComments.move$.pipe(
+        withLatestFrom(timelineComments.store$),
+        map(([_, data]) => data),
+      ).subscribe((data) => {
+        this.comments.move$.next(data);
+      })
+    )
   }
 
   ngOnDestroy() {

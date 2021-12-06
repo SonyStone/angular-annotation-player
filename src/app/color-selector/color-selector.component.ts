@@ -1,15 +1,20 @@
 import { Component, Inject } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
 
-import { BRUSH_COLOR } from '../brush/brush-color';
+import { BrushService } from '../brush/brush.service';
 
 @Component({
   selector: 'color-selector',
-  templateUrl: './color-selector.component.html',
+  template: `
+  
+  <input type="color"
+       [ngModel]="brush.color$ | push"
+       (ngModelChange)="brush.color$.next($event)">
+  
+  `,
 })
 export class ColorSelectorComponent {
 
   constructor(
-    @Inject(BRUSH_COLOR) readonly color: BehaviorSubject<string>,
+    @Inject(BrushService) readonly brush: BrushService,
   ) {}
 }

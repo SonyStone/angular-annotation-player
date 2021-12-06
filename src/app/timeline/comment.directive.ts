@@ -1,24 +1,11 @@
 import { Directive, ElementRef, Inject, Input, OnDestroy, Renderer2 } from '@angular/core';
-import {
-  combineLatest,
-  first,
-  map,
-  merge,
-  Observable,
-  pipe,
-  Subject,
-  Subscription,
-  switchMapTo,
-  takeUntil,
-  withLatestFrom,
-} from 'rxjs';
+import { combineLatest, first, map, merge, pipe, Subject, Subscription, switchMapTo, takeUntil, withLatestFrom } from 'rxjs';
 
 import { pointerdown, pointermove, pointerup } from '../events/pointer';
 import { Frame } from '../interfaces/Frame';
 import { TimelinePosition } from '../interfaces/TimelinePosition';
-import { PlayerService } from '../player.service';
-import { VIDEO_TOTAL_FRAMES } from '../video/video-total-frames';
-import { TimelineComponent } from './timeline.component';
+import { VideoService } from '../video/video.service';
+import { TimelineCommentsService } from './timeline-comment-store';
 
 
 @Directive({
@@ -42,7 +29,7 @@ export class CommentDirective implements OnDestroy {
   private move$ = pointermove(this.element);
 
   private toFrame = pipe(
-    withLatestFrom<PointerEvent, [Frame, DOMRect]>(this.totalFrames$, this.rect$),
+    withLatestFrom<PointerEvent, [Frame, DOMRect]>(this.video.totalFrames$, this.rect$),
     map(([pointerEvent, duration, rect]) => {
       const pointerX = pointerEvent.offsetX;
       const width = rect.width;
@@ -71,22 +58,27 @@ export class CommentDirective implements OnDestroy {
   private subscription = new Subscription();
 
   constructor(
-    private readonly player: PlayerService,
-    private readonly timeline: TimelineComponent,
     private readonly render: Renderer2,
     private readonly elementRef: ElementRef<Element>,
-    @Inject(VIDEO_TOTAL_FRAMES) private readonly totalFrames$: Observable<Frame>,
+    @Inject(TimelineCommentsService) readonly timelineComments: TimelineCommentsService,
+    @Inject(VideoService) private readonly video: VideoService,
   ) {
     console.log(`comment created!`);
 
-    this.timeline.lastMove.next(this.lastChange$.pipe(
-      withLatestFrom(this.frame$),
-      map(([drag, frame]) => [frame, drag]),
-    ))
+    this.subscription.add(
+      this.lastChange$.pipe(
+        withLatestFrom(this.frame$),
+        map(([drag, frame]) => [frame, drag]),
+      ).subscribe((data) => {
+        timelineComments.move$.next(data as [Frame, Frame]);
+      })
+    )
+
+    
 
     this.subscription.add(
       combineLatest([
-        merge(this.drag$, this.frame$), this.totalFrames$, this.rect$])
+        merge(this.drag$, this.frame$), this.video.totalFrames$, this.rect$])
       .pipe(
       map(([time, duration, rect]) => ((time / duration * rect.width) || 0) as TimelinePosition),
     ).subscribe((translate) => {

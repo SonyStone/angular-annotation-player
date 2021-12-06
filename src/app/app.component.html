@@ -1,4 +1,5 @@
-<div class="wrapper" scroll>
+<div class="wrapper"
+     scroll>
   <canvas paint></canvas>
   <video #video="video"
          [src]="src$ | push"></video>
@@ -12,13 +13,25 @@
 
   <color-selector></color-selector>
 
+  <input type="range"
+         min="0.1"
+         max="50"
+         [ngModel]="brush.size$ | push"
+         (ngModelChange)="brush.size$.next($event)">
+
+  <select [ngModel]="brush.compositeOperation$ | push"
+          (ngModelChange)="brush.compositeOperation$.next($event)">
+    <option *ngFor="let item of brush.compositeOperations"
+            [ngValue]="item.value">{{ item.name }}</option>
+  </select>
+
   <button (click)="video.play()">play</button>
   <button (click)="video.pause()">pause</button>
 </div>
 
-<div>
-  <button (click)="player.clear$.next()">clear</button>
-</div>
+<!-- <div>
+  <button (click)="comments.clear$.next()">clear</button>
+</div> -->
 
 <div>
   <span>frame rate: {{ fps$ | push }}</span>
@@ -51,6 +64,6 @@
 </div>
 
 <div>
-  <button (click)="player.save$.next()"
-          [file]="(player.file$ | push)">Save</button>
+  <button (click)="comments.save$.next()"
+          [file]="(comments.file$ | push)">Save</button>
 </div>

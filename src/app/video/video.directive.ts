@@ -1,9 +1,6 @@
 import { Directive, ElementRef, Inject, OnDestroy } from '@angular/core';
-import { Observable, ReplaySubject } from 'rxjs';
 
-import { VideoTime } from '../interfaces/VideoTime';
-import { VIDEO_CURRENT_TIME_CHANGE } from './video-current-time';
-import { VIDEO_ELEMENT } from './video-element';
+import { VideoService } from './video.service';
 
 /**
  * Слушатели на <video> элементе
@@ -16,21 +13,16 @@ import { VIDEO_ELEMENT } from './video-element';
 })
 export class VideoDirective implements OnDestroy {
 
-  video = this.elementRef.nativeElement;
-
-
-  private subscription = this.currentTimeChange
+  private subscription = this.video.currentTimeChange$
     .subscribe((currentTime) => {
-      this.video.currentTime = currentTime;
+      this.elementRef.nativeElement.currentTime = currentTime;
     })
-
 
   constructor(
     @Inject(ElementRef) private readonly elementRef: ElementRef<HTMLVideoElement>,
-    @Inject(VIDEO_ELEMENT) video: ReplaySubject<HTMLVideoElement>,
-    @Inject(VIDEO_CURRENT_TIME_CHANGE) private readonly currentTimeChange: Observable<VideoTime>,
+    @Inject(VideoService) private readonly video: VideoService,
   ) {
-    video.next(elementRef.nativeElement);
+    video.video$.next(elementRef.nativeElement);
   }
 
   ngOnDestroy(): void {
@@ -38,11 +30,11 @@ export class VideoDirective implements OnDestroy {
   }
 
   play() {
-    this.video.play();
+    this.elementRef.nativeElement.play();
   }
 
   pause() {
-    this.video.pause();
+    this.elementRef.nativeElement.pause();
   }
 }
 

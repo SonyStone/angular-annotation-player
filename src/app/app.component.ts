@@ -1,18 +1,12 @@
-import { Component, Inject, ViewChild } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { Component, Inject, Injectable, OnDestroy } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { filter, Subject } from 'rxjs';
 
-import { CanvasPaintDirective } from './canvas/canvas-paint.directive';
+import { BrushService } from './brush/brush.service';
+import { CanvasService } from './canvas/canvas.service';
+import { CommentsService } from './comments/comments.service';
 import { FILES_CHANGE } from './files-change';
-import { Frame } from './interfaces/Frame';
-import { VideoTime } from './interfaces/VideoTime';
-import { FrameRateService, PlayerService } from './player.service';
-import { VIDEO_CURRENT_FRAME } from './video/video-current-frame';
-import { VIDEO_CURRENT_TIME } from './video/video-current-time';
-import { VIDEO_FILE_CHANGE } from './video/video-file-change';
-import { VIDEO_FPS } from './video/video-fps';
-import { VIDEO_SRC } from './video/video-src';
-import { VIDEO_TOTAL_FRAMES } from './video/video-total-frames';
-import { VideoDirective } from './video/video.directive';
+import { VideoService } from './video/video.service';
 
 
 const FRAME_RATES = [
@@ -26,27 +20,56 @@ const FRAME_RATES = [
   { name: 'high: 60', value: 60 },
 ];
 
+
+
+@Injectable()
+export class FrameRateService implements OnDestroy {
+  control = new FormControl(this.video.fps$.value);
+  private subscription = this.control.valueChanges.pipe(
+    filter((fps) => fps > 0 && fps < 9000),
+  ).subscribe((fps) => {
+    this.video.fps$.next(fps)
+  })
+
+  constructor(
+    @Inject(VideoService) private readonly video: VideoService,
+  ) {}
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
+}
+
+
+
 @Component({
   selector: 'my-app',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
+  providers: [
+    VideoService,
+    CommentsService,
+    CanvasService,
+    BrushService,
+    FrameRateService,
+  ]
 })
 export class AppComponent {
   frameRates = FRAME_RATES;
 
-  @ViewChild(VideoDirective, { static: true }) video!: VideoDirective;
-  @ViewChild(CanvasPaintDirective, { static: true }) canvas!: CanvasPaintDirective;
-
+  videoInput$ = this.video.video$;
+  src$ = this.video.src$;
+  fps$ = this.video.fps$;
+  currentFrame$ = this.video.currentFrame$;
+  currentTime$ = this.video.currentTime$;
+  totalFrames$ = this.video.totalFrames$;
 
   constructor(
     readonly frameRate: FrameRateService,
-    readonly player: PlayerService,
+    @Inject(BrushService) readonly brush: BrushService,
+    @Inject(CommentsService) readonly comments: CommentsService,
+    @Inject(VideoService) private readonly video: VideoService,
     @Inject(FILES_CHANGE) readonly filesInput: Subject<FileList>,
-    @Inject(VIDEO_FILE_CHANGE) readonly videoInput$: Subject<File>,
-    @Inject(VIDEO_SRC) readonly src$: Observable<string>,
-    @Inject(VIDEO_FPS) readonly fps$: Observable<number>,
-    @Inject(VIDEO_CURRENT_FRAME) readonly currentFrame$: Observable<Frame>,
-    @Inject(VIDEO_CURRENT_TIME) readonly currentTime$: Observable<VideoTime>,
-    @Inject(VIDEO_TOTAL_FRAMES) readonly totalFrames$: Observable<Frame>,
   ) {}
 }
+
