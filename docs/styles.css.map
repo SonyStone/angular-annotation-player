@@ -1,1 +1,0 @@
-{"version":3,"file":"styles.css","mappings":";;;AAAA,mDAAmD;;AAEnD;EACE,aAAa;EACb,sBAAsB;EACtB,iBAAiB;EACjB,aAAa;AACf,C","sources":["./src/styles.css"],"sourcesContent":["/* Add application styles & imports to this file! */\r\n\r\nbody {\r\n  display: flex;\r\n  flex-direction: column;\r\n  min-height: 100vh;\r\n  margin: unset;\r\n}"],"names":[],"sourceRoot":"webpack:///"}
