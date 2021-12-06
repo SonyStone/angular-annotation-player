@@ -1,4 +1,5 @@
-import { NgModule } from '@angular/core';
+import { Injector, NgModule } from '@angular/core';
+import { createCustomElement } from '@angular/elements';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 
@@ -39,8 +40,14 @@ import { VideoDirective } from './video/video.directive';
       ScrollDirective,
     ],
   ],
-  bootstrap:    [
-    AppComponent,
-  ]
 })
-export class AppModule { }
+export class AppModule {
+  constructor(
+    private injector: Injector,
+  ) {} 
+
+  ngDoBootstrap() {
+    const element = createCustomElement(AppComponent, { injector: this.injector })
+    customElements.define("annotation-player", element);    
+  }
+}
