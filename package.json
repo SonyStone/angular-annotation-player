@@ -1,7 +1,7 @@
 {
-  "name": "angular",
-  "version": "0.0.0",
-  "private": true,
+  "name": "annotation-player",
+  "version": "0.0.1",
+  "private": false,
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
