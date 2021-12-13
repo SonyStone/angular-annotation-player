@@ -22,7 +22,7 @@ import { Frame } from '../interfaces/Frame';
 import { VideoService } from '../video/video.service';
 
 @Injectable()
-export class CommentsService {
+export class AnnotationsService {
   add$ = new ReplaySubject<[Frame, ImageData]>();
 
   fileHandler$ = fileHandler(this.canvas.ctx$);

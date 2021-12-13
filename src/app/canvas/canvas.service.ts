@@ -29,20 +29,11 @@ export class CanvasService {
 }
 
 
-
-
-
 export function canvasContext(
-  canvas$: Observable<HTMLCanvasElement>
+  canvas$: Observable<HTMLCanvasElement>,
 ): Observable<CanvasRenderingContext2D> {
   return canvas$.pipe(
-    map((canvas) => {
-      
-      canvas.height = canvas.offsetHeight;
-      canvas.width = canvas.offsetWidth;
-
-      return canvas.getContext('2d')!;
-    }),
+    map((canvas) => canvas.getContext('2d')!),
     tap((e) => {
       console.log(`canvas`, e);
     }),
@@ -64,7 +55,7 @@ export function canvasPaint(
       const up = pointerup(ctx.canvas);
       
       return down.pipe(
-
+        tap((v) => { console.log(`log-down`, v); }),
         map((event) => stroke.down({
           ctx,
           color,

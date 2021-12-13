@@ -9,7 +9,6 @@ import { VideoService } from './video.service';
  */
 @Directive({
   selector: 'video',
-  exportAs: 'video',
 })
 export class VideoDirective implements OnDestroy {
 
@@ -27,14 +26,6 @@ export class VideoDirective implements OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
-  }
-
-  play() {
-    this.elementRef.nativeElement.play();
-  }
-
-  pause() {
-    this.elementRef.nativeElement.pause();
   }
 }
 

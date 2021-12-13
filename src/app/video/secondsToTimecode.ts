@@ -5,12 +5,12 @@ export type Timecode = Brand<string, 'Timecode'>;
 
 export function secondsToTimecode(time: VideoTime, fps: number): Timecode {
 	
-	var hours = Math.floor(time / 3600) % 24;
-	var minutes = Math.floor(time / 60) % 60;
-	var seconds = Math.floor(time % 60);
-	var frames = Math.floor(((time % 1) * fps));
+	const hours = Math.floor(time / 3600) % 24;
+	const minutes = Math.floor(time / 60) % 60;
+	const seconds = Math.floor(time % 60);
+	const frames = Math.floor(((time % 1) * fps));
 	
-	var result = (hours < 10 ? "0" + hours : hours) + ":"
+	const result = (hours < 10 ? "0" + hours : hours) + ":"
 	+ (minutes < 10 ? "0" + minutes : minutes) + ":"
 	+ (seconds < 10 ? "0" + seconds : seconds) + ":"
 	+ (frames < 10 ? "0" + frames : frames);

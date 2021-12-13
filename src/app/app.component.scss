@@ -20,32 +20,6 @@ p {
   }
 }
 
-.wrapper {
-  display: block;
-  position: relative;
-  height: 500px;
-  width: 895px;
-}
-
-.wrapper * {
-  position: absolute;
-  height: 500px;
-  width: 895px;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-
-canvas {
-  /* height: 500px; */
-  /* width: 895px; */
-  /* background-color: red; */
-  z-index: 1;
-  touch-action: none;
-  cursor: crosshair;
-}
-
 svg {
   height: 30px;
 }

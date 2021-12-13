@@ -3,7 +3,7 @@ import { merge, Observable, ReplaySubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { store } from '../canvas/store';
-import { CommentsService } from '../comments/comments.service';
+import { AnnotationsService } from '../annotations/annotations.service';
 import { Frame } from '../interfaces/Frame';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class TimelineCommentsService {
   store$ = timelineCommentStore(this.comments.store$, this.move$);
 
   constructor(
-    @Inject(CommentsService) private readonly comments: CommentsService,
+    @Inject(AnnotationsService) private readonly comments: AnnotationsService,
   ) {}
 }
 

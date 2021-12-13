@@ -2,7 +2,7 @@ import { KeyValue } from '@angular/common';
 import { Component, Inject, OnDestroy } from '@angular/core';
 import { map, Subscription, withLatestFrom } from 'rxjs';
 
-import { CommentsService } from '../comments/comments.service';
+import { AnnotationsService } from '../annotations/annotations.service';
 import { Frame } from '../interfaces/Frame';
 import { TimelineCommentsService } from './timeline-comment-store';
 
@@ -25,7 +25,7 @@ export class TimelineComponent implements OnDestroy {
 
   constructor(
     @Inject(TimelineCommentsService) readonly timelineComments: TimelineCommentsService,
-    @Inject(CommentsService) private readonly comments: CommentsService,
+    @Inject(AnnotationsService) private readonly comments: AnnotationsService,
   ) {
     this.subscription.add(
       timelineComments.move$.pipe(
