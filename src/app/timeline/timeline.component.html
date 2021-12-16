@@ -21,7 +21,7 @@
           fill="#ffffff" />
   </g>
 
-  <g *ngFor="let item of (timelineComments.store$ | push | keyvalue); trackBy: trackByFn; let i = index"
+  <g *ngFor="let item of (timelineComments.store$ | push)?.getArray(); trackBy: trackByFn; let i = index"
      [comment]="item.key"
      [rect]="timeline.rect"
      style="cursor: e-resize;">

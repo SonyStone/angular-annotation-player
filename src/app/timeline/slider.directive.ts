@@ -1,10 +1,10 @@
 import { Directive, ElementRef, Inject, Input, OnDestroy, Renderer2 } from '@angular/core';
-import { combineLatest, map, merge, pipe, Subscription, switchMapTo, takeUntil, withLatestFrom } from 'rxjs';
+import { combineLatest, map, merge, pipe, shareReplay, Subscription, switchMapTo, takeUntil, tap, withLatestFrom } from 'rxjs';
 
-import { pointerdown, pointermove, pointerup } from '../events/pointer';
+import { pointerdown, pointerdrag, pointermove, pointerup } from '../events/pointer';
 import { TimelinePosition } from '../interfaces/TimelinePosition';
 import { VideoTime } from '../interfaces/VideoTime';
-import { VideoService } from '../video/video.service';
+import { VideoService } from '../utilities/video.service';
 
 
 @Directive({
@@ -15,9 +15,6 @@ export class SliderDirective implements OnDestroy {
   private element = this.elementRef.nativeElement;
 
   @Input('slider') rect!: DOMRect;
-
-  private down$ = pointerdown(this.element);
-  private move$ = pointermove(this.element);
 
   private toFrame = pipe(
     withLatestFrom<PointerEvent, [VideoTime]>(this.video.duration$),
@@ -35,10 +32,11 @@ export class SliderDirective implements OnDestroy {
     }),
   )
 
-  drag$ = this.down$.pipe(switchMapTo(this.move$.pipe(takeUntil(pointerup(this.element))))).pipe(
+  drag$ = pointerdrag(this.element).pipe(
     this.toFrame,
+    shareReplay(),
   );
-  
+
   private subscription = new Subscription();
 
   constructor(
@@ -46,8 +44,6 @@ export class SliderDirective implements OnDestroy {
     private elementRef: ElementRef<Element>,
     @Inject(VideoService) private readonly video: VideoService,
   ) {
-    console.log(`slider created!`);
-
     this.subscription.add(this.drag$.subscribe((time) => this.video.currentTimeChange$.next(time)));
 
     this.subscription.add(combineLatest([

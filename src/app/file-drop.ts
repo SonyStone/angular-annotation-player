@@ -1,5 +1,5 @@
 import { fromEvent, merge, Observable, of } from 'rxjs';
-import { delay, distinctUntilChanged, map, mapTo, mergeMap, pluck, share, shareReplay, switchMapTo, takeUntil, tap } from 'rxjs/operators';
+import { delay, distinctUntilChanged, mapTo, mergeMap, shareReplay, switchMapTo, takeUntil, tap } from 'rxjs/operators';
 
 
 export class FilesDrop {

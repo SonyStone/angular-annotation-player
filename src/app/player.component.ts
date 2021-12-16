@@ -1,6 +1,6 @@
 import { Component, Inject } from '@angular/core';
 
-import { VideoService } from './video/video.service';
+import { VideoService } from './utilities/video.service';
 
 @Component({
   selector: 'player',

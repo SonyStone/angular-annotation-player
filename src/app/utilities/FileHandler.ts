@@ -7,7 +7,7 @@ export class FileHandler {
     private readonly canvas: CanvasOffscreen
   ) {}
 
-  async restore(file: File): Promise<Map<Frame, ImageData>> {
+  async restore(file: File): Promise<{ [key: Frame]: ImageData}> {
 
     const reader = new FileReader();
     reader.readAsText(file);
@@ -36,23 +36,23 @@ export class FileHandler {
     const data2 = await Promise.all(dataPromises);
   
     const filledData = entries.reduce((accumulator, [key, _], index) => {
-      accumulator.set(parseInt(key, 10), data2[index]);
+      accumulator[parseInt(key, 10)] = data2[index];
   
       return accumulator;
-    }, new Map())
+    }, {} as { [key: number]: ImageData})
   
     return filledData;
   }
 
-  async save(data: Map<Frame, ImageData>): Promise<File> {
+  async save(data: { [key: Frame]: ImageData}): Promise<File> {
 
     const base64Images: Promise<string | ArrayBuffer>[] = [];
     const keys: Frame[] = [];
 
-    for (const [key, img] of data) {
+    for (const [key, img] of Object.entries(data)) {
       const base64 = this.canvas.imageDataToBlop(img).then((blob) => blobToBase64(blob));
       base64Images.push(base64);
-      keys.push(key)
+      keys.push(key as any)
     }
   
     const images = await Promise.all(base64Images);
@@ -65,7 +65,7 @@ export class FileHandler {
   
     const json = JSON.stringify(dataImages, (key, value) => {
       if (value instanceof ImageData) {
-        return data.get(parseInt(key, 10) as Frame);
+        return data[parseInt(key, 10) as Frame];
       }
   
       return value

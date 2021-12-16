@@ -2,9 +2,10 @@ import { Inject, Injectable, InjectionToken } from '@angular/core';
 import { merge, Observable, ReplaySubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { store } from '../canvas/store';
-import { AnnotationsService } from '../annotations/annotations.service';
+import { store } from './store';
+import { AnnotationsService } from './annotations.service';
 import { Frame } from '../interfaces/Frame';
+import { Layer } from './layer';
 
 @Injectable()
 export class TimelineCommentsService {
@@ -17,23 +18,16 @@ export class TimelineCommentsService {
 }
 
 export const timelineCommentStore = (
-  store$: Observable<Map<Frame, ImageData>>,
+  store$: Observable<Layer>,
   lastMove: Observable<[Frame, Frame]>,
-) => store<Map<Frame, ImageData>>(
+) => store<Layer>(
   merge(
     store$.pipe(
-      map((frames) => () => new Map(frames)),
+      map((frames) => () => frames.clone()),
     ),
     lastMove.pipe(
-      map(([oldFrame, newFrame]) => (store: Map<Frame, ImageData>) => {
-        const value = store.get(oldFrame)!;
-        store.delete(oldFrame);
-
-        store.set(newFrame, value);
-  
-        return store;
-      }),
+      map(([from, to]) => (layer: Layer) => layer.move(from, to)),
     )
   ),
-  new Map(),
+  new Layer(),
 );

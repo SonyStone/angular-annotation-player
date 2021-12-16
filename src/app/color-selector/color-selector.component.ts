@@ -1,6 +1,6 @@
 import { Component, Inject } from '@angular/core';
 
-import { BrushService } from '../brush/brush.service';
+import { BrushService } from '../utilities/brush.service';
 
 @Component({
   selector: 'color-selector',

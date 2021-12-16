@@ -1,47 +1,76 @@
-<player scroll></player>
+<div class="player">
+
+  <player scroll></player>
 
 
-<div>
-  <files-input></files-input>
-  <color-selector></color-selector>
+  <div>
+    <files-input></files-input>
+    <color-selector></color-selector>
 
-  <brush-size-selector></brush-size-selector>
+    <brush-size-selector></brush-size-selector>
 
-  <select [ngModel]="brush.compositeOperation$ | push"
-          (ngModelChange)="brush.compositeOperation$.next($event)">
-    <option *ngFor="let item of brush.compositeOperations"
-            [ngValue]="item.value">{{ item.name }}</option>
-  </select>
+    <select [ngModel]="brush.compositeOperation$ | push"
+            (ngModelChange)="brush.compositeOperation$.next($event)">
+      <option *ngFor="let item of brush.compositeOperations"
+              [ngValue]="item.value">{{ item.name }}</option>
+    </select>
 
-  <button (click)="video.play()">play</button>
-  <button (click)="video.pause()">pause</button>
+    <button (click)="video.play()">play</button>
+    <button (click)="video.pause()">pause</button>
+  </div>
+
+  <!-- <div>
+    <button (click)="comments.clear$.next()">clear</button>
+  </div> -->
+
+  <frame-rate-selector></frame-rate-selector>
+
+  <span>Time:
+
+    <ng-container>{{ video.currentTime$ | push | timecode : (video.fps$ | push) }}</ng-container>
+  </span>
+  <span>Frame:
+
+    <ng-container>{{ video.currentFrame$ | push }}</ng-container>
+
+    /
+
+    <ng-container>{{ video.totalFrames$ | push }}</ng-container>
+  </span>
+
+
+  <div>
+    <timeline></timeline>
+  </div>
+
+  <div>
+    <button (click)="annotations.save$.next()"
+            [file]="(annotations.file$ | push)">Save</button>
+  </div>
 </div>
 
-<!-- <div>
-  <button (click)="comments.clear$.next()">clear</button>
-</div> -->
+<div class="comments">
+  <div class="comments_wrapper">
 
-<frame-rate-selector></frame-rate-selector>
+    <div class="add_comment">
+      <button>add comment</button>
+      <textarea></textarea>
+    </div>
+  
+    <button *ngFor="let comment of comments"
+         class="comment">
+      <div class="comment_header">
+        <span>{{ comment.name }}</span>
+        <span>{{ comment.date | date }}</span>
+        <div class="avatar">N</div>
+      </div>
+      <div class="comment_content">{{ comment.comment }}
+      </div>
+    </button>
 
-<span>Time:
-
-  <ng-container>{{ video.currentTime$ | push | timecode : (video.fps$ | push) }}</ng-container>
-</span>
-<span>Frame:
-
-  <ng-container>{{ video.currentFrame$ | push }}</ng-container>
-
-  /
-
-  <ng-container>{{ video.totalFrames$ | push }}</ng-container>
-</span>
-
-
-<div>
-  <timeline></timeline>
+  </div>
 </div>
 
 <div>
-  <button (click)="comments.save$.next()"
-          [file]="(comments.file$ | push)">Save</button>
+  <p *ngFor="let layer of layers.layers">{{layer}}</p>
 </div>

@@ -1,6 +1,6 @@
 import { Directive, ElementRef, Inject, OnDestroy } from '@angular/core';
 
-import { VideoService } from './video.service';
+import { VideoService } from '../utilities/video.service';
 
 /**
  * Слушатели на <video> элементе

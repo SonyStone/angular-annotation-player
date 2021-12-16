@@ -3,7 +3,7 @@ import { fromEvent, groupBy, map, mergeMap, Observable } from 'rxjs';
 import { withLatestFrom } from 'rxjs/operators';
 
 import { VideoTime } from '../interfaces/VideoTime';
-import { VideoService } from './video.service';
+import { VideoService } from '../utilities/video.service';
 
 
 @Directive({

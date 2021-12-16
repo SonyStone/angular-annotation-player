@@ -20,7 +20,7 @@ import {
   timer,
 } from 'rxjs';
 
-import { FILES_CHANGE } from '../files-change';
+import { FILES_CHANGE } from './files-change';
 import { Frame } from '../interfaces/Frame';
 import { VideoTime } from '../interfaces/VideoTime';
 import { videoTimeToFrame } from './videoTimeToFrame';
@@ -36,8 +36,13 @@ export class VideoService {
   
 
   readonly duration$ = videoDuration(this.video$);
+
+  /** Разрешение самого ролика внутри `video` */
   readonly dimensions$ = videoDimensions(this.video$);
+
+  /** Размер элемента `video` */
   readonly resize$ = videoResize(this.video$);
+
   readonly totalFrames$ = videoTotalFrames(this.duration$, this.fps$);
   
 
@@ -133,9 +138,6 @@ function videoDuration(
     switchMap((video) => fromEvent<Event>(video, 'durationchange').pipe(
       map(() => video.duration as VideoTime),
     )),
-    tap((e) => {
-      console.log(`duration`, e);
-    }),
     shareReplay(),
   );
 }

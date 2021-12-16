@@ -1,4 +1,5 @@
-import { catchError, first, fromEvent, merge, of, shareReplay, switchMapTo, takeUntil, tap } from 'rxjs';
+import { exhaustMap, first, fromEvent, merge, startWith, takeUntil, tap } from 'rxjs';
+
 
 export const pointerdown = (element: Element) => fromEvent<PointerEvent>(element, 'pointerdown').pipe(
   tap((evt) => {
@@ -22,26 +23,12 @@ export const pointerup = (element: Element) => merge(
   first(),
 );
 
-
 export const pointerdrag = (
   element: Element,
-) => {
-
-  const down$ = pointerdown(element).pipe(
-
-    shareReplay(),
-  );
-  const move$ = pointermove(element);
-  const up$ = pointerup(element);
-
-  return merge(
-    down$,
-    down$.pipe(switchMapTo(move$.pipe(
-      takeUntil(up$),
-      // https://stackoverflow.com/questions/41131476/emptyerror-no-elements-in-sequence
-      catchError(() => of())
-    ))),
-    up$,
-  );
-}
-
+) => pointerdown(element).pipe(
+    exhaustMap((downEvent) => pointermove(element).pipe(
+      startWith(downEvent),
+      takeUntil(pointerup(element))
+    ),
+  ),
+);

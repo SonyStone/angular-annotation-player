@@ -1,9 +1,9 @@
 import { Directive, ElementRef, Inject, OnDestroy } from '@angular/core';
 import { combineLatest, Subscription } from 'rxjs';
 
-import { AnnotationsService } from '../annotations/annotations.service';
-import { VideoService } from '../video/video.service';
-import { CanvasService } from './canvas.service';
+import { AnnotationsService } from '../utilities/annotations.service';
+import { Dimensions, VideoService } from '../utilities/video.service';
+import { CanvasService } from '../utilities/canvas.service';
 
 @Directive({
   selector: `canvas[paint]`,
@@ -17,7 +17,7 @@ export class CanvasPaintDirective implements OnDestroy {
     elementRef: ElementRef<HTMLCanvasElement>,
     @Inject(CanvasService) canvasService: CanvasService,
     @Inject(AnnotationsService) comments: AnnotationsService,
-    @Inject(VideoService) private readonly video: VideoService,
+    @Inject(VideoService) video: VideoService,
   ) {
     const canvas = elementRef.nativeElement;
     canvasService.canvas$.next(canvas);
@@ -31,33 +31,35 @@ export class CanvasPaintDirective implements OnDestroy {
         }
       })
     );
-    // this.subscription.add(
-    //   combineLatest([ctx$, player.clear$]).subscribe(([ctx]) => {
-    //     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    //   })
-    // )
-
-    this.subscription.add(
-      combineLatest([video.dimensions$, video.resize$]).subscribe(([dimensions, resize]) => {
-        const scaleX = resize.width / dimensions.width;
-        const x = (resize.width - dimensions.width) / 2;
-    
-        const scaleY = resize.height / dimensions.height;
-        const y = (resize.height - dimensions.height) / 2;
-    
-        canvas.style.transform = `matrix(${scaleX}, 0, 0, ${scaleY}, ${x}, ${y})`
-      })
-    );
 
     this.subscription.add(
       video.dimensions$.subscribe((dimensions) => {
         canvas.height = dimensions.height;
         canvas.width = dimensions.width;
       })
-    )
+    );
+
+    this.subscription.add(
+      combineLatest([video.dimensions$, video.resize$]).subscribe(([element, video]) => {    
+        canvas.style.transform = resizeTo(element, video);
+      })
+    );
   }
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
   }
+}
+
+/** изменение размера `target` под размер `from` */
+function resizeTo(target: Dimensions, from: Dimensions): string {
+
+  const scaleX = from.width / target.width;
+  const skewY = 0;
+  const skewX = 0;
+  const scaleY = from.height / target.height;
+  const translateX = (from.width - target.width) / 2;
+  const translateY = (from.height - target.height) / 2;
+
+  return `matrix(${scaleX}, ${skewY}, ${skewX}, ${scaleY}, ${translateX}, ${translateY})`
 }

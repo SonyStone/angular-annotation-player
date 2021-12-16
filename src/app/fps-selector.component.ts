@@ -1,7 +1,7 @@
 import { Component, Inject, Injectable, OnDestroy, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { filter } from 'rxjs';
-import { VideoService } from './video/video.service';
+import { VideoService } from './utilities/video.service';
 
 const FRAME_RATES = [
   { name: 'film: 24', value: 24 },

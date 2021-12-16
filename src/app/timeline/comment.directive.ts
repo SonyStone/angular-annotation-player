@@ -4,8 +4,8 @@ import { combineLatest, first, map, merge, pipe, Subject, Subscription, switchMa
 import { pointerdown, pointermove, pointerup } from '../events/pointer';
 import { Frame } from '../interfaces/Frame';
 import { TimelinePosition } from '../interfaces/TimelinePosition';
-import { VideoService } from '../video/video.service';
-import { TimelineCommentsService } from './timeline-comment-store';
+import { VideoService } from '../utilities/video.service';
+import { TimelineCommentsService } from '../utilities/timeline-comment-store';
 
 
 @Directive({
@@ -19,8 +19,8 @@ export class CommentDirective implements OnDestroy {
   };
 
   frame$ = new Subject<Frame>();
-  @Input('comment') set frame(frame: Frame | string) {
-    this.frame$.next(frame as Frame);
+  @Input('comment') set frame(frame: Frame) {
+    this.frame$.next(frame);
   };
 
   private element = this.elementRef.nativeElement;
@@ -63,8 +63,6 @@ export class CommentDirective implements OnDestroy {
     @Inject(TimelineCommentsService) readonly timelineComments: TimelineCommentsService,
     @Inject(VideoService) private readonly video: VideoService,
   ) {
-    console.log(`comment created!`);
-
     this.subscription.add(
       this.lastChange$.pipe(
         withLatestFrom(this.frame$),

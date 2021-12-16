@@ -2,9 +2,9 @@ import { KeyValue } from '@angular/common';
 import { Component, Inject, OnDestroy } from '@angular/core';
 import { map, Subscription, withLatestFrom } from 'rxjs';
 
-import { AnnotationsService } from '../annotations/annotations.service';
+import { AnnotationsService } from '../utilities/annotations.service';
 import { Frame } from '../interfaces/Frame';
-import { TimelineCommentsService } from './timeline-comment-store';
+import { TimelineCommentsService } from '../utilities/timeline-comment-store';
 
 
 @Component({

@@ -1,18 +1,18 @@
 import { Inject, Injectable } from '@angular/core';
 import {
-  combineLatest,
   exhaustMap,
   last,
   map,
   Observable,
   ReplaySubject,
   shareReplay,
+  startWith,
   switchMap,
   takeUntil,
-  tap,
+  withLatestFrom,
 } from 'rxjs';
 
-import { BrushService } from '../brush/brush.service';
+import { BrushService } from './brush.service';
 import { stroke } from '../croquis/brush/simple';
 import { getStylusState } from '../croquis/stylus';
 import { pointerdown, pointermove, pointerup } from '../events/pointer';
@@ -34,9 +34,6 @@ export function canvasContext(
 ): Observable<CanvasRenderingContext2D> {
   return canvas$.pipe(
     map((canvas) => canvas.getContext('2d')!),
-    tap((e) => {
-      console.log(`canvas`, e);
-    }),
     shareReplay(),
   ); 
 }
@@ -47,31 +44,29 @@ export function canvasPaint(
   size$: Observable<number>,
   globalCompositeOperation$: Observable<string>,
 ) {
-  return combineLatest([ctx$, color$, size$, globalCompositeOperation$]).pipe(
-    switchMap(([ctx, color, size, globalCompositeOperation]) => {
+  return ctx$.pipe(
+    switchMap((ctx) => pointerdown(ctx.canvas).pipe(
+      withLatestFrom(color$, size$, globalCompositeOperation$),
+      exhaustMap(([event, color, size, globalCompositeOperation]) => {
 
-      const down = pointerdown(ctx.canvas);
-      const move = pointermove(ctx.canvas);
-      const up = pointerup(ctx.canvas);
-      
-      return down.pipe(
-        tap((v) => { console.log(`log-down`, v); }),
-        map((event) => stroke.down({
+        const context = stroke.down({
           ctx,
           color,
           size,
           globalCompositeOperation,
-        }, getStylusState(event))),
-    
-        exhaustMap((drawingContext) => move.pipe(
-            map((event) => drawingContext.move(getStylusState(event))),
-            takeUntil(up.pipe(
-              map((event) => drawingContext.up(getStylusState(event)))
-            )),
-            last(),
-            map(() => ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)),
-        )),
-      )
-    })
+        }, getStylusState(event))
+
+        return pointermove(ctx.canvas).pipe(
+          startWith(event),
+          map((event) => context.move(getStylusState(event))),
+          takeUntil(pointerup(ctx.canvas).pipe(
+            map((event) => context.up(getStylusState(event))),
+          )),
+          last(),
+          map(() => ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)),
+        );
+      }),
+    )),
+    shareReplay(),
   );
 }

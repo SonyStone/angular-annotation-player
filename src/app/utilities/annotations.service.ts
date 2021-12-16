@@ -9,29 +9,40 @@ import {
   shareReplay,
   Subject,
   switchMap,
-  tap,
   withLatestFrom,
 } from 'rxjs';
 
-import { CanvasService } from '../canvas/canvas.service';
-import { CanvasOffscreen } from '../canvas/CanvasOffscreen';
-import { FileHandler } from '../canvas/FileHandler';
-import { store } from '../canvas/store';
-import { FILES_CHANGE } from '../files-change';
 import { Frame } from '../interfaces/Frame';
-import { VideoService } from '../video/video.service';
+import { CanvasService } from './canvas.service';
+import { CanvasOffscreen } from './CanvasOffscreen';
+import { FileHandler } from './FileHandler';
+import { FILES_CHANGE } from './files-change';
+import { Layer } from './layer';
+import { store } from './store';
+import { Dimensions, VideoService } from './video.service';
+
 
 @Injectable()
 export class AnnotationsService {
-  add$ = new ReplaySubject<[Frame, ImageData]>();
+  // add$ = new ReplaySubject<[Frame, ImageData]>();
 
-  fileHandler$ = fileHandler(this.canvas.ctx$);
+  fileHandler$ = fileHandler(this.video.dimensions$);
 
   restore$ = commentRestore(commentFileChange(this.files$), this.fileHandler$);
 
-  move$ = new ReplaySubject<Map<Frame, ImageData>>();
+  /** Новая позиция коментариев */
+  move$ = new ReplaySubject<Layer>();
+
   remove$ = new Subject<Frame>();
-  store$ = commentStore(this.move$, this.restore$, this.canvas.paint$, this.video.currentFrame$, this.remove$);
+  store$ = commentStore(
+    merge(
+      this.move$,
+      this.restore$,
+    ),
+    this.canvas.paint$,
+    this.video.currentFrame$,
+    this.remove$
+  );
   
   currentImage$ = commentCurrentImage(this.video.currentFrame$, this.store$);
 
@@ -43,75 +54,56 @@ export class AnnotationsService {
     @Inject(CanvasService) private readonly canvas: CanvasService,
     @Inject(VideoService) private readonly video: VideoService,
   ) {}
+
+  add(): void {}
 }
 
-
-
-
-
-
 export function commentStore(
-  move$: Observable<Map<Frame, ImageData>>,
-  restore$: Observable<Map<Frame, ImageData>>,
+  set$: Observable<Layer>,
   paint$: Observable<ImageData>,
   currentFrame$: Observable<Frame>,
   remove$: Observable<Frame>,
-): Observable<Map<Frame, ImageData>> {
-  return store(
+): Observable<Layer> {
+  return store<Layer>(
     merge(
-      merge(
-        move$,
-        restore$,
-      ).pipe(
-        map((data) => () => data),
+      set$.pipe(
+        map((data) => () => data.clone()),
       ),
       paint$.pipe(
         withLatestFrom(currentFrame$),
-        map(([imageData, frame]) => (store: Map<Frame, ImageData>) => {
-          store.set(frame, imageData);
-    
-          return store;
-        }),
+        map(([imageData, frame]) => (layer: Layer) => layer.add(frame, imageData)),
       ),
       remove$.pipe(
-        map((frame: Frame) => (store: Map<Frame, ImageData>) => {
-          store.delete(frame);
-    
-          return store;
-        })
+        map((frame: Frame) => (layer: Layer) => layer.remove(frame))
       ),
     ),
-    new Map(),
+    new Layer(),
   ).pipe(
-    tap((e) => {
-      console.log(`store`, e);
-    }),
     shareReplay(),
   );
 }
 
 export function commentSaveFile(
   save$: Observable<void>,
-  data$: Observable<Map<Frame, ImageData>>,
+  data$: Observable<Layer>,
   fileHandler$: Observable<FileHandler>,
 ): Observable<File> {
   return save$.pipe(
     withLatestFrom(data$, fileHandler$),
-    switchMap(([_, data, fileHandler]) => fileHandler.save(data)),
+    switchMap(([_, data, fileHandler]) => fileHandler.save(data.getAll())),
     shareReplay(),
   )
 }
 
 export function commentCurrentImage(
   currentFrame$: Observable<Frame>,
-  store$: Observable<Map<Frame, ImageData>>,
+  store$: Observable<Layer>,
 ): Observable<ImageData | undefined> {
   return combineLatest([
     store$,
     currentFrame$,
   ]).pipe(
     map(([data, frame])=> data.get(frame)),
-    // map(([frame, data])=> closest(frame, data) ?? undefined),
     shareReplay(),
   )
 }
@@ -133,19 +125,20 @@ function isJsonFile(file: File) {
 export function commentRestore(
   file$: Observable<File>,
   fileHandler$: Observable<FileHandler>,
-): Observable<Map<Frame, ImageData>> {
+): Observable<Layer> {
   return file$.pipe(
     withLatestFrom(fileHandler$),
     switchMap(([file, fileHandler]) => fileHandler.restore(file)),
+    map((restore) => new Layer().set(restore)),
     shareReplay(),
   );
 }
 
 export function fileHandler(
-  ctx$: Observable<CanvasRenderingContext2D>
+  dimensions$: Observable<Dimensions>,
 ) {
-  const offscreenCanvas$ = ctx$.pipe(
-    map(({ canvas }) => new CanvasOffscreen(canvas.offsetWidth, canvas.offsetHeight))
+  const offscreenCanvas$ = dimensions$.pipe(
+    map((dimensions) => new CanvasOffscreen(dimensions.width, dimensions.height))
   );
 
   const fileHandler$ = offscreenCanvas$.pipe(
