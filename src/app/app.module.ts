@@ -14,6 +14,16 @@ import { FileDropDirective } from './elements/file-drop.directive';
 import { FilesInputComponent } from './elements/files-input.component';
 import { FrameRateSelectorComponent } from './elements/fps-selector.component';
 import { FramePipe } from './elements/frame.pipe';
+import { IconAddModule } from './elements/icons/add';
+import { IconFastForwardModule } from './elements/icons/fast-forward';
+import { IconFastRewindModule } from './elements/icons/fast-rewind';
+import { IconPauseModule } from './elements/icons/pause';
+import { IconPlayModule } from './elements/icons/play';
+import { IconRedoModule } from './elements/icons/redo';
+import { IconSaveModule } from './elements/icons/save';
+import { IconSkipNextModule } from './elements/icons/skip-next';
+import { IconSkipPreviousModule } from './elements/icons/skip-previous';
+import { IconUndoModule } from './elements/icons/undo';
 import { PlayerComponent } from './elements/player.component';
 import { TimecodePipe } from './elements/timecode.pipe';
 import { TimelineModule } from './elements/timeline/timeline.module';
@@ -34,6 +44,18 @@ import { VideoDirective } from './elements/video.directive';
     [
       TimelineModule,
       AppCommonModule,
+    ],
+    [
+      IconSkipPreviousModule,
+      IconSkipNextModule,
+      IconPlayModule,
+      IconPauseModule,
+      IconFastRewindModule,
+      IconFastForwardModule,
+      IconSaveModule,
+      IconUndoModule,
+      IconRedoModule,
+      IconAddModule,
     ],
   ],
   declarations: [

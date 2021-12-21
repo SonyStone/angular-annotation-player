@@ -156,10 +156,6 @@ p {
   }
 }
 
-svg {
-  height: 30px;
-}
-
 
 textarea.cdk-textarea-autosize-measuring {
   padding: 2px 0 !important;
@@ -172,4 +168,8 @@ textarea.cdk-textarea-autosize-measuring-firefox {
   padding: 2px 0 !important;
   box-sizing: content-box !important;
   height: 0 !important;
+}
+
+button {
+  padding: 2px;
 }
