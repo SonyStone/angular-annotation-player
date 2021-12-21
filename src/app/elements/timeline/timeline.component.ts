@@ -2,9 +2,9 @@ import { KeyValue } from '@angular/common';
 import { Component, Inject, OnDestroy } from '@angular/core';
 import { map, Subscription, withLatestFrom } from 'rxjs';
 
-import { AnnotationsService } from '../utilities/annotations.service';
-import { Frame } from '../interfaces/Frame';
-import { TimelineCommentsService } from '../utilities/timeline-comment-store';
+import { Frame } from '../../interfaces/Frame';
+import { LayersStore } from '../../utilities/layers.store';
+import { TimelineCommentsService } from '../../utilities/timeline-comment-store';
 
 
 @Component({
@@ -17,7 +17,7 @@ import { TimelineCommentsService } from '../utilities/timeline-comment-store';
 })
 export class TimelineComponent implements OnDestroy {
 
-  trackByFn(_: number, item: KeyValue<Frame, ImageData>) {
+  trackByFn(_: number, item: KeyValue<Frame | string, ImageData>) {
     return item.value;
   }
 
@@ -25,14 +25,14 @@ export class TimelineComponent implements OnDestroy {
 
   constructor(
     @Inject(TimelineCommentsService) readonly timelineComments: TimelineCommentsService,
-    @Inject(AnnotationsService) private readonly comments: AnnotationsService,
+    @Inject(LayersStore) store: LayersStore,
   ) {
     this.subscription.add(
       timelineComments.move$.pipe(
-        withLatestFrom(timelineComments.store$),
+        withLatestFrom(store.currentLayer$),
         map(([_, data]) => data),
-      ).subscribe((data) => {
-        this.comments.move$.next(data);
+      ).subscribe((sequence) => {
+        store.layer.set(sequence);
       })
     )
   }

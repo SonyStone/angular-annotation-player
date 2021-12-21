@@ -1,6 +1,7 @@
-import { Pipe, PipeTransform } from "@angular/core";
-import { VideoTime } from "./interfaces/VideoTime";
-import { secondsToTimecode, Timecode } from "./utilities/secondsToTimecode";
+import { Pipe, PipeTransform } from '@angular/core';
+
+import { VideoTime } from '../interfaces/VideoTime';
+import { secondsToTimecode, Timecode } from '../utilities/secondsToTimecode';
 
 const DEFAULT_FRAME_RATE = 29.97;
 const DEFAULT_START_TIME = 0 as VideoTime;

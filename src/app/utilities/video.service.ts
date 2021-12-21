@@ -18,11 +18,14 @@ import {
   takeUntil,
   tap,
   timer,
+  withLatestFrom,
 } from 'rxjs';
 
-import { FILES_CHANGE } from './files-change';
+import { Dimensions } from '../interfaces/Dimensions.interface';
 import { Frame } from '../interfaces/Frame';
 import { VideoTime } from '../interfaces/VideoTime';
+import { FILES_CHANGE } from './files-change';
+import { LayersStore } from './layers.store';
 import { videoTimeToFrame } from './videoTimeToFrame';
 
 export const DEFAULT_FRAME_RATE = 29.97;
@@ -30,7 +33,18 @@ export const DEFAULT_FRAME_RATE = 29.97;
 @Injectable()
 export class VideoService {
 
-  readonly video$ = new ReplaySubject<HTMLVideoElement>();
+  private readonly file$ = videoFileChange(this.files$);
+  readonly src$ = videoSrc(this.file$, this.sanitizer);
+
+  readonly videoChange = new ReplaySubject<HTMLVideoElement>();
+  readonly video$ = combineLatest([this.videoChange, this.src$]).pipe(
+    map(([video, src]) => {
+      video.src = src;
+      video.setAttribute('type', 'video/mp4');
+      return video;
+    })
+  );
+
   readonly fps$ = new BehaviorSubject(DEFAULT_FRAME_RATE);
   readonly frameSize$ = videoFrameSize(this.fps$);
   
@@ -40,38 +54,45 @@ export class VideoService {
   /** Разрешение самого ролика внутри `video` */
   readonly dimensions$ = videoDimensions(this.video$);
 
-  /** Размер элемента `video` */
-  readonly resize$ = videoResize(this.video$);
-
   readonly totalFrames$ = videoTotalFrames(this.duration$, this.fps$);
   
+  readonly moveByFrame$ = new Subject<Frame>();
 
-  readonly currentTimeChange$ = new ReplaySubject<VideoTime>();
+  readonly currentTimeChange = new ReplaySubject<VideoTime>();
+
   readonly play$ = new Subject<void>();
   readonly pause$ = new Subject<void>();
 
-  readonly videoState$ = videoState(
-    this.video$,
-    this.play$,
-    this.pause$,
+  readonly currentTime$ = this.video$.pipe(
+    switchMap((video) => merge(
+      merge(
+        this.store.currentTime$,
+        this.currentTimeChange,
+      ).pipe(
+        map((currentTime) => {
+          video.currentTime = currentTime;
+          return video.currentTime as VideoTime;
+        }),
+      ),
+      videoControls(video)(this.play$, this.pause$),
+    )),
+    shareReplay(),
   );
 
-  readonly currentTime$ = videoCurrentTime(
-    this.videoState$,
-    this.currentTimeChange$
-  );
   readonly currentFrame$ = videoCurrentFrame(this.currentTime$, this.fps$);
-
-  private readonly file$ = videoFileChange(this.files$);
-  readonly src$ = videoSrc(this.file$, this.sanitizer)
 
   constructor(
     @Inject(FILES_CHANGE) private readonly files$: Observable<FileList>,
     @Inject(DomSanitizer) private readonly sanitizer: DomSanitizer,
-  ) {}
+    @Inject(LayersStore) private readonly store: LayersStore,
+  ) {
+    moveByFrame(this.moveByFrame$, this.frameSize$, this.currentTime$, this.duration$).subscribe((time) => {
+      this.currentTimeChange.next(time);
+    })
+  }
 
   video(element: HTMLVideoElement): void {
-    this.video$.next(element);
+    this.videoChange.next(element);
   }
 
   play(): void {
@@ -81,8 +102,36 @@ export class VideoService {
   pause(): void {
     this.pause$.next();
   }
+
+  nextFrame(): void {
+    this.moveByFrame$.next(+1 as Frame);
+  }
+  previousFrame(): void {
+    this.moveByFrame$.next(-1 as Frame);
+  }
+
+  nextComment(): void {}
+  previousComment(): void {}
 }
 
+
+function moveByFrame(
+  moveByFrame$: Observable<Frame>,
+  frameSize$: Observable<VideoTime>,
+  currentTime$: Observable<VideoTime>,
+  duration$: Observable<VideoTime>,
+): Observable<VideoTime> {
+  return moveByFrame$.pipe(
+    withLatestFrom(frameSize$, currentTime$, duration$),
+    map(([move, frame, currentTime, duration]) => {
+      const nextTime = currentTime + (move * frame) as VideoTime;
+
+      return nextTime <= duration && nextTime > 0
+        ? nextTime
+        : currentTime;
+    }),
+  );
+}
 
 
 function videoCurrentFrame(
@@ -98,34 +147,30 @@ function videoCurrentFrame(
   )
 }
 
-function videoState(
-  video$: Observable<HTMLVideoElement>,
-  play$: Observable<void>,
-  pause$: Observable<void>,
+function videoControls(
+  video: HTMLVideoElement,
 ) {
-  return video$.pipe(
-    switchMap((video) => play$.pipe(
-      tap(() => video.play()),
-      switchMapTo(timer(0, 0, animationFrameScheduler).pipe(
-        map(() => video.currentTime as VideoTime),
-        takeUntil(pause$.pipe(
-          tap(() => video.pause()),
+  return function(
+    play$: Observable<void>,
+    pause$: Observable<void>,
+  ) {
+    return play$.pipe(
+        tap(() => video.play()),
+        switchMapTo(timer(0, 0, animationFrameScheduler).pipe(
+          map(() => video.currentTime as VideoTime),
+          takeUntil(pause$.pipe(
+            tap(() => video.pause()),
+          ))
         ))
-      ))
-
-    ))
-  )
+    );
+  }
 }
 
 const VIDEO_START_TIME = 0 as VideoTime;
 function videoCurrentTime(
-  videoState$: Observable<VideoTime>,
-  currentTime$: Observable<VideoTime>,
+  time$: Observable<VideoTime>,
 ): Observable<VideoTime> {
-  return merge(
-    videoState$,
-    currentTime$,
-  ).pipe(
+  return time$.pipe(
     startWith(VIDEO_START_TIME),
     shareReplay(),
   )
@@ -142,10 +187,6 @@ function videoDuration(
   );
 }
 
-export interface Dimensions {
-  width: number,
-  height: number,
-}
 
 function videoDimensions(
   video$: Observable<HTMLVideoElement>
@@ -155,39 +196,15 @@ function videoDimensions(
       map(() => ({
         height: video.videoHeight,
         width: video.videoWidth,
-        clientHeight: video.clientHeight,
-        clientWidth: video.clientWidth,
       })),
     )),
     shareReplay(),
   );
 }
 
-function resizeObservable(elem: Element): Observable<ResizeObserverEntry[]> {
-  return new Observable((subscriber) => {
-      const resizeObserver = new ResizeObserver(entries => {
-          subscriber.next(entries);
-      });
 
-      resizeObserver.observe(elem);
-      return () => {
-          resizeObserver.unobserve(elem);
-      }
-  });
-}
 
-function videoResize(
-  video$: Observable<HTMLVideoElement>
-): Observable<Dimensions> {
 
-  return video$.pipe(
-    switchMap((video) => resizeObservable(video)),
-    map((entries) => ({
-      height: entries[0].contentRect.height,
-      width: entries[0].contentRect.width,
-    }))
-  )
-}
 
 function isVideoFile(file: File) {
   return file.type === 'video/mp4';

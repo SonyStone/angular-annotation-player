@@ -9,4 +9,4 @@ export const videoTimeToFrame = (
 export const frameToVideoTime = (
   frame: Frame,
   fps: number
-): VideoTime => frame / fps as VideoTime;
+): VideoTime => (frame + 1) / fps as VideoTime;

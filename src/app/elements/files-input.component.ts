@@ -1,7 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { Subject } from 'rxjs';
 
-import { FILES_CHANGE } from './utilities/files-change';
+import { FILES_CHANGE } from '../utilities/files-change';
 
 @Component({
   selector: 'files-input',

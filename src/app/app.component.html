@@ -15,8 +15,24 @@
               [ngValue]="item.value">{{ item.name }}</option>
     </select>
 
-    <button (click)="video.play()">play</button>
-    <button (click)="video.pause()">pause</button>
+    <button>
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+    </button>
+    <button (click)="video.previousFrame()">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
+    </button>
+    <button (click)="video.play()">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M8 5v14l11-7z"/></svg>
+    </button>
+    <button (click)="video.pause()">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+    </button>
+    <button (click)="video.nextFrame()">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
+    </button>
+    <button>
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+    </button>
   </div>
 
   <!-- <div>
@@ -25,19 +41,8 @@
 
   <frame-rate-selector></frame-rate-selector>
 
-  <span>Time:
-
-    <ng-container>{{ video.currentTime$ | push | timecode : (video.fps$ | push) }}</ng-container>
-  </span>
-  <span>Frame:
-
-    <ng-container>{{ video.currentFrame$ | push }}</ng-container>
-
-    /
-
-    <ng-container>{{ video.totalFrames$ | push }}</ng-container>
-  </span>
-
+  <span>Time: <ng-container>{{ video.currentTime$ | push | timecode : (video.fps$ | push) }}</ng-container></span>
+  <span>Frame: <ng-container>{{ video.currentFrame$ | push }}</ng-container> / <ng-container>{{ video.totalFrames$ | push }}</ng-container></span>
 
   <div>
     <timeline></timeline>
@@ -45,7 +50,17 @@
 
   <div>
     <button (click)="annotations.save$.next()"
-            [file]="(annotations.file$ | push)">Save</button>
+            [file]="(annotations.file$ | push)">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+    </button>
+
+    <button (click)="store.undo()">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+    </button>
+    <button (click)="store.redo()">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>
+    </button>
+
   </div>
 </div>
 
@@ -53,24 +68,26 @@
   <div class="comments_wrapper">
 
     <div class="add_comment">
-      <button>add comment</button>
-      <textarea></textarea>
+      <button (click)="store.addComment()">add comment</button>
     </div>
-  
-    <button *ngFor="let comment of comments"
-         class="comment">
-      <div class="comment_header">
+
+    <button *ngFor="let comment of (store.comments$ | push); let i = index"
+            class="comment"
+            (click)="store.selectLayer(i)"
+            [ngClass]="{'active': (store.currentLayerId$ | push) === i }">
+      <!-- <div class="comment_header">
         <span>{{ comment.name }}</span>
         <span>{{ comment.date | date }}</span>
         <div class="avatar">N</div>
-      </div>
-      <div class="comment_content">{{ comment.comment }}
-      </div>
+      </div> -->
+      <textarea class="comment_content"
+                [value]="comment.text"
+                textareaAutosize></textarea>
     </button>
 
   </div>
 </div>
 
-<div>
+<!-- <div>
   <p *ngFor="let layer of layers.layers">{{layer}}</p>
-</div>
+</div> -->

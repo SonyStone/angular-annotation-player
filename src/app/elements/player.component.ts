@@ -1,13 +1,13 @@
 import { Component, Inject } from '@angular/core';
 
-import { VideoService } from './utilities/video.service';
+import { VideoService } from '../utilities/video.service';
 
 @Component({
   selector: 'player',
   template: `
     <div class="wrapper">
       <canvas paint></canvas>
-      <video [src]="video.src$ | push" type="video/mp4"></video>
+      <video *ngIf="video.src$ | push"></video>
     </div>
   `,
   styles: [`

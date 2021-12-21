@@ -1,8 +1,10 @@
 import { Directive, ElementRef, Inject, OnDestroy } from '@angular/core';
 import { fromEvent, groupBy, map, mergeMap, Observable } from 'rxjs';
 import { withLatestFrom } from 'rxjs/operators';
+import { Frame } from '../interfaces/Frame';
 
 import { VideoTime } from '../interfaces/VideoTime';
+import { LayersStore } from '../utilities/layers.store';
 import { VideoService } from '../utilities/video.service';
 
 
@@ -16,13 +18,15 @@ export class ScrollDirective implements OnDestroy {
   scroll$ = fromEvent<WheelEvent>(this.element, 'wheel');
 
   private readonly subscription = this.scroll$.pipe(
-    groupBy((event) => event.deltaY > 0),
-    mergeMap((group$) => (group$.key)
-      ? this.scrollUp(group$)
-      : this.scrollDown(group$)
-    ),
-  ).subscribe((time) => {
-    this.video.currentTimeChange$.next(time);
+    map((event) => ((event.deltaY > 0) ? 1 : -1) as Frame),
+    // groupBy((event) => event.deltaY > 0),
+    // mergeMap((group$) => (group$.key)
+    //   ? this.scrollUp(group$)
+    //   : this.scrollDown(group$)
+    // ),
+  ).subscribe((frame) => {
+    this.video.moveByFrame$.next(frame)
+    // this.video.currentTimeChange$.next(time);
   })
 
   constructor(
@@ -34,7 +38,7 @@ export class ScrollDirective implements OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  scrollUp(scroll: Observable<WheelEvent>) {
+  private scrollUp(scroll: Observable<WheelEvent>) {
     return scroll.pipe(
       withLatestFrom(this.video.frameSize$, this.video.currentTime$, this.video.duration$),
       map(([_, frame, currentTime, duration]) => {
@@ -44,7 +48,7 @@ export class ScrollDirective implements OnDestroy {
     );
   }
 
-  scrollDown(scroll: Observable<WheelEvent>) {
+  private scrollDown(scroll: Observable<WheelEvent>) {
     return scroll.pipe(
       withLatestFrom(this.video.frameSize$, this.video.currentTime$, this.video.duration$),
       map(([_, frame, currentTime]) => {

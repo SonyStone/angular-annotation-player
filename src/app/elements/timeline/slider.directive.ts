@@ -1,10 +1,12 @@
 import { Directive, ElementRef, Inject, Input, OnDestroy, Renderer2 } from '@angular/core';
-import { combineLatest, map, merge, pipe, shareReplay, Subscription, switchMapTo, takeUntil, tap, withLatestFrom } from 'rxjs';
+import { Store } from '@ngneat/elf';
+import { combineLatest, map, merge, pipe, shareReplay, Subscription, withLatestFrom } from 'rxjs';
 
-import { pointerdown, pointerdrag, pointermove, pointerup } from '../events/pointer';
-import { TimelinePosition } from '../interfaces/TimelinePosition';
-import { VideoTime } from '../interfaces/VideoTime';
-import { VideoService } from '../utilities/video.service';
+import { pointerdrag } from '../../events/pointer';
+import { TimelinePosition } from '../../interfaces/TimelinePosition';
+import { VideoTime } from '../../interfaces/VideoTime';
+import { LayersStore } from '../../utilities/layers.store';
+import { VideoService } from '../../utilities/video.service';
 
 
 @Directive({
@@ -43,8 +45,9 @@ export class SliderDirective implements OnDestroy {
     private render: Renderer2,
     private elementRef: ElementRef<Element>,
     @Inject(VideoService) private readonly video: VideoService,
+    @Inject(LayersStore) private readonly store: LayersStore,
   ) {
-    this.subscription.add(this.drag$.subscribe((time) => this.video.currentTimeChange$.next(time)));
+    this.subscription.add(this.drag$.subscribe((time) => this.store.setTime(time)));
 
     this.subscription.add(combineLatest([
       merge(

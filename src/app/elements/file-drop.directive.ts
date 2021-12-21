@@ -1,7 +1,8 @@
 import { Directive, ElementRef, Input, OnDestroy, Output, Renderer2 } from '@angular/core';
 import { BehaviorSubject, connectable, Subscription } from 'rxjs';
-import { map, pluck, tap, withLatestFrom,  } from 'rxjs/operators';
-import { coerceBooleanProperty } from './coerce-boolean-property';
+import { map, withLatestFrom } from 'rxjs/operators';
+
+import { coerceBooleanProperty } from '../common/coerce-boolean-property';
 import { FilesDrop } from './file-drop';
 
 @Directive({

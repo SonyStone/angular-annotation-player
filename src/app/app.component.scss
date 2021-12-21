@@ -44,10 +44,6 @@ p {
   background-color: #eaeef5;
   min-height: 40px;
   padding: 8px;
-
-  textarea {
-    resize: vertical;
-  }
 }
 
 .comment {
@@ -70,6 +66,8 @@ p {
   border-radius: 2px;
 
   overflow: hidden;
+
+  padding: 8px 0;
   
   // height: 108px;
 
@@ -78,14 +76,26 @@ p {
   }
 
 
-  &:focus-within {
+
+  &:focus-within, &.active {
     outline: blue 4px solid;
   }
 
   .comment_content {
+    resize: none;
+    border: unset;
+    box-sizing: content-box;
+
+    background-color: unset;
+
+    padding: 0 8px;
     transition: max-height .6s cubic-bezier(0.0, 0.0, 0.2, 1);
     overflow-y: scroll;
-    max-height: 16px;
+    max-height: 60px;
+
+    &:focus-visible {
+      outline: unset;
+    }
 
     &::-webkit-scrollbar {
       width: 5px;
@@ -98,8 +108,8 @@ p {
     }
   }
 
-  &:focus-within .comment_content, &:hover .comment_content {
-    max-height: 400px;
+  &:focus-within .comment_content, &:hover .comment_content, &.active .comment_content {
+    max-height: 300px;
   }
 
 }
@@ -148,4 +158,18 @@ p {
 
 svg {
   height: 30px;
+}
+
+
+textarea.cdk-textarea-autosize-measuring {
+  padding: 2px 0 !important;
+  box-sizing: content-box !important;
+  height: auto !important;
+  overflow: hidden !important;
+}
+
+textarea.cdk-textarea-autosize-measuring-firefox {
+  padding: 2px 0 !important;
+  box-sizing: content-box !important;
+  height: 0 !important;
 }

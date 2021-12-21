@@ -1,9 +1,11 @@
 import { Directive, ElementRef, Inject, OnDestroy } from '@angular/core';
 import { combineLatest, Subscription } from 'rxjs';
 
+import { Dimensions } from '../interfaces/Dimensions.interface';
 import { AnnotationsService } from '../utilities/annotations.service';
-import { Dimensions, VideoService } from '../utilities/video.service';
 import { CanvasService } from '../utilities/canvas.service';
+import { resize } from '../utilities/resize';
+import { VideoService } from '../utilities/video.service';
 
 @Directive({
   selector: `canvas[paint]`,
@@ -40,7 +42,10 @@ export class CanvasPaintDirective implements OnDestroy {
     );
 
     this.subscription.add(
-      combineLatest([video.dimensions$, video.resize$]).subscribe(([element, video]) => {    
+      combineLatest([
+        video.dimensions$,
+        resize(video.video$)
+      ]).subscribe(([element, video]) => {    
         canvas.style.transform = resizeTo(element, video);
       })
     );

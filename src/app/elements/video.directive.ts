@@ -1,5 +1,7 @@
 import { Directive, ElementRef, Inject, OnDestroy } from '@angular/core';
+import { merge } from 'rxjs';
 
+import { LayersStore } from '../utilities/layers.store';
 import { VideoService } from '../utilities/video.service';
 
 /**
@@ -10,22 +12,22 @@ import { VideoService } from '../utilities/video.service';
 @Directive({
   selector: 'video',
 })
-export class VideoDirective implements OnDestroy {
+export class VideoDirective  {
 
-  private subscription = this.video.currentTimeChange$
-    .subscribe((currentTime) => {
-      this.elementRef.nativeElement.currentTime = currentTime;
-    })
+  // private subscription = merge(
+  //   this.store.currentTime$,
+  //   this.video.currentTimeChange,
+  //   )
+  //   .subscribe((currentTime) => {
+  //     this.elementRef.nativeElement.currentTime = currentTime;
+  //   })
 
   constructor(
     @Inject(ElementRef) private readonly elementRef: ElementRef<HTMLVideoElement>,
     @Inject(VideoService) private readonly video: VideoService,
+    @Inject(LayersStore) private readonly store: LayersStore,
   ) {
-    video.video$.next(elementRef.nativeElement);
-  }
-
-  ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+    video.video(elementRef.nativeElement);
   }
 }
 

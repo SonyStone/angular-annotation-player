@@ -1,6 +1,6 @@
 import { Component, Inject } from '@angular/core';
 
-import { BrushService } from './utilities/brush.service';
+import { BrushService } from '../utilities/brush.service';
 
 @Component({
   selector: 'brush-size-selector',
