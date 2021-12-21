@@ -9,14 +9,13 @@ import {
   startWith,
   switchMap,
   takeUntil,
-  tap,
   withLatestFrom,
 } from 'rxjs';
 
-import { BrushService } from './brush.service';
 import { stroke } from '../croquis/brush/simple';
 import { getStylusState } from '../croquis/stylus';
 import { pointerdown, pointermove, pointerup } from '../events/pointer';
+import { BrushService } from './brush.service';
 
 @Injectable()
 export class CanvasService {

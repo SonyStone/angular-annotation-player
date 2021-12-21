@@ -2,7 +2,8 @@ import { Component, NgModule } from '@angular/core';
 
 @Component({
   selector: 'icon-pause',
-  templateUrl: 'pause.svg'
+  templateUrl: 'pause.svg',
+  styleUrls: ['icon.scss'],
 })
 export class IconPauseComponent {}
 

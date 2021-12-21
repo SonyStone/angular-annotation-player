@@ -1,10 +1,9 @@
 import { Directive, ElementRef, Inject, OnDestroy } from '@angular/core';
-import { fromEvent, groupBy, map, mergeMap, Observable } from 'rxjs';
+import { fromEvent, map, Observable } from 'rxjs';
 import { withLatestFrom } from 'rxjs/operators';
-import { Frame } from '../interfaces/Frame';
 
+import { Frame } from '../interfaces/Frame';
 import { VideoTime } from '../interfaces/VideoTime';
-import { LayersStore } from '../utilities/layers.store';
 import { VideoService } from '../utilities/video.service';
 
 
@@ -25,7 +24,7 @@ export class ScrollDirective implements OnDestroy {
     //   : this.scrollDown(group$)
     // ),
   ).subscribe((frame) => {
-    this.video.moveByFrame$.next(frame)
+    this.video.moveByFrameChange.next(frame)
     // this.video.currentTimeChange$.next(time);
   })
 

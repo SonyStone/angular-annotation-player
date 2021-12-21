@@ -2,7 +2,8 @@ import { Component, NgModule } from '@angular/core';
 
 @Component({
   selector: 'icon-add',
-  templateUrl: 'add.svg'
+  templateUrl: 'add.svg',
+  styleUrls: ['icon.scss'],
 })
 export class IconAddComponent {}
 

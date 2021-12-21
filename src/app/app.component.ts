@@ -22,7 +22,6 @@ import { VideoService } from './utilities/video.service';
   ]
 })
 export class AppComponent {
-
   constructor(
     @Inject(BrushService) readonly brush: BrushService,
     @Inject(AnnotationsService) readonly annotations: AnnotationsService,
@@ -31,4 +30,3 @@ export class AppComponent {
     @Inject(LayersStore) readonly store: LayersStore,
   ) {}
 }
-

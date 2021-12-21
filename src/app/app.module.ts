@@ -15,9 +15,11 @@ import { FilesInputComponent } from './elements/files-input.component';
 import { FrameRateSelectorComponent } from './elements/fps-selector.component';
 import { FramePipe } from './elements/frame.pipe';
 import { IconAddModule } from './elements/icons/add';
+import { IconEraserModule } from './elements/icons/eraser';
 import { IconFastForwardModule } from './elements/icons/fast-forward';
 import { IconFastRewindModule } from './elements/icons/fast-rewind';
 import { IconPauseModule } from './elements/icons/pause';
+import { IconPenModule } from './elements/icons/pen';
 import { IconPlayModule } from './elements/icons/play';
 import { IconRedoModule } from './elements/icons/redo';
 import { IconSaveModule } from './elements/icons/save';
@@ -56,6 +58,8 @@ import { VideoDirective } from './elements/video.directive';
       IconUndoModule,
       IconRedoModule,
       IconAddModule,
+      IconPenModule,
+      IconEraserModule,
     ],
   ],
   declarations: [

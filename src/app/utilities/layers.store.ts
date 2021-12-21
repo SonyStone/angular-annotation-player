@@ -61,17 +61,7 @@ export class LayersStore implements OnDestroy {
 
   history = stateHistory(this.store, { maxAge: 25 });
 
-
   comments$ = this.store.pipe(select((state) => state.comments));
-
-
-
-  // private store = new Store<LayersState>(createInitialState(), {
-  //   name: 'layers',
-  //   producerFn: produce,
-  // });
-  // private query = new Query<LayersState>(this.store);
-  // private history = new StateHistoryPlugin(this.query);
 
   currentLayerId$ = this.store.pipe(select((state) => state.currentLayerId));
   currentLayer$ = this.store.pipe(select((state) => state.layers[state.currentLayerId]));
@@ -115,6 +105,10 @@ export class LayersStore implements OnDestroy {
     this.store.update(write((state) => {
       state.metadata.fps = fps;
     }))
+  }
+
+  getFPS(): number {
+    return this.store.value.metadata.fps;
   }
 
   undo(): void {

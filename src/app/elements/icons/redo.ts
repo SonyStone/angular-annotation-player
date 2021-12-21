@@ -2,7 +2,8 @@ import { Component, NgModule } from '@angular/core';
 
 @Component({
   selector: 'icon-redo',
-  templateUrl: 'redo.svg'
+  templateUrl: 'redo.svg',
+  styleUrls: ['icon.scss'],
 })
 export class IconRedoComponent {}
 

@@ -5,9 +5,18 @@
 
   <div>
     <files-input></files-input>
+
+    <button (click)="brush.compositeOperation$.next('source-over')">
+      <icon-pen></icon-pen>
+    </button>
+
+    <button (click)="brush.compositeOperation$.next('destination-out')">
+      <icon-eraser></icon-eraser>
+    </button>
     <color-selector></color-selector>
 
     <brush-size-selector></brush-size-selector>
+
 
     <select [ngModel]="brush.compositeOperation$ | push"
             (ngModelChange)="brush.compositeOperation$.next($event)">
@@ -15,10 +24,17 @@
               [ngValue]="item.value">{{ item.name }}</option>
     </select>
 
-    <button>
+
+  </div>
+
+  <div class="action">
+    <button (click)="video.previousComment()">
       <icon-skip-previous></icon-skip-previous>
     </button>
-    <button (click)="video.previousFrame()">
+    <button (click)="video.previousFrame()"
+            (pointerdown)="video.frameByFrameRewindStart.next($event)"
+            (pointerup)="video.frameByFrameRewindEnd.next($event)"
+            (pointerleave)="video.frameByFrameRewindEnd.next($event)">
       <icon-fast-rewind></icon-fast-rewind>
     </button>
     <button (click)="video.play()">
@@ -27,10 +43,13 @@
     <button (click)="video.pause()">
       <icon-pause></icon-pause>
     </button>
-    <button (click)="video.nextFrame()">
+    <button (click)="video.nextFrame()"
+            (pointerdown)="video.frameByFrameForwardStart.next($event)"
+            (pointerup)="video.frameByFrameForwardEnd.next($event)"
+            (pointerleave)="video.frameByFrameForwardEnd.next($event)">
       <icon-fast-forward></icon-fast-forward>
     </button>
-    <button>
+    <button (click)="video.nextComment()">
       <icon-skip-next></icon-skip-next>
     </button>
   </div>

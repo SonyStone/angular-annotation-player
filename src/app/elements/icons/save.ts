@@ -2,7 +2,8 @@ import { Component, NgModule } from '@angular/core';
 
 @Component({
   selector: 'icon-save',
-  templateUrl: 'save.svg'
+  templateUrl: 'save.svg',
+  styleUrls: ['icon.scss'],
 })
 export class IconSaveComponent {}
 

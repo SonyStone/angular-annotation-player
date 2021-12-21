@@ -2,7 +2,8 @@ import { Component, NgModule } from '@angular/core';
 
 @Component({
   selector: 'icon-skip-next',
-  templateUrl: 'skip-next.svg'
+  templateUrl: 'skip-next.svg',
+  styleUrls: ['icon.scss'],
 })
 export class IconSkipNextComponent {}
 

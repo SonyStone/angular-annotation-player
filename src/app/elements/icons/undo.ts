@@ -2,7 +2,8 @@ import { Component, NgModule } from '@angular/core';
 
 @Component({
   selector: 'icon-undo',
-  templateUrl: 'undo.svg'
+  templateUrl: 'undo.svg',
+  styleUrls: ['icon.scss'],
 })
 export class IconUndoComponent {}
 

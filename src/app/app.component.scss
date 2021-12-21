@@ -156,6 +156,13 @@ p {
   }
 }
 
+.action {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px;
+}
+
 
 textarea.cdk-textarea-autosize-measuring {
   padding: 2px 0 !important;

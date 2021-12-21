@@ -2,6 +2,7 @@ import { Component, Inject, Injectable, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { filter } from 'rxjs';
 
+import { LayersStore } from '../utilities/layers.store';
 import { VideoService } from '../utilities/video.service';
 
 const FRAME_RATES = [
@@ -17,15 +18,15 @@ const FRAME_RATES = [
 
 @Injectable()
 export class FrameRateService implements OnDestroy {
-  control = new FormControl(this.video.fps$.value);
+  control = new FormControl(this.store.getFPS());
   private subscription = this.control.valueChanges.pipe(
     filter((fps) => fps > 0 && fps < 9000),
   ).subscribe((fps) => {
-    this.video.fps$.next(fps)
+    this.store.setFPS(fps)
   })
 
   constructor(
-    @Inject(VideoService) private readonly video: VideoService,
+    @Inject(LayersStore) private readonly store: LayersStore,
   ) {}
 
   ngOnDestroy(): void {
