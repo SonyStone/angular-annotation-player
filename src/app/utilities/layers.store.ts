@@ -66,6 +66,8 @@ export class LayersStore implements OnDestroy {
   currentLayerId$ = this.store.pipe(select((state) => state.currentLayerId));
   currentLayer$ = this.store.pipe(select((state) => state.layers[state.currentLayerId]));
 
+  store$ = this.store.pipe((select((state) => state)));
+
   currentTime$ = this.store.pipe(select((state) => state.currentTime));
   fps$ = this.store.pipe(select((state) => state.metadata.fps));
   src$ = this.store.pipe(select((state) => state.metadata.src));
@@ -75,6 +77,10 @@ export class LayersStore implements OnDestroy {
   ngOnDestroy(): void {
     this.store.destroy();
     this.history.destroy();
+  }
+
+  set(data: LayersState) {
+    this.store.update(() => data);
   }
 
   selectLayer(index: number): void {

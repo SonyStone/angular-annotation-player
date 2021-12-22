@@ -21,11 +21,12 @@ import { FILES_CHANGE } from './files-change';
 import { LayersStore } from './layers.store';
 import {
   frameByFrame,
+  getCurrentTimeOperator,
   offsetByFrames,
   offsetToNextComment,
   offsetToPreviousComment,
   playPauseControls,
-  setTime,
+  setCurrentTimeOperator,
 } from './video-time-functions';
 import { videoTimeToFrame } from './videoTimeToFrame';
 
@@ -60,7 +61,7 @@ export class VideoService {
   readonly playChange = new Subject<void>();
   readonly pauseChange = new Subject<void>();
   readonly frameByFrameForwardElement = new ReplaySubject<Element>();
-  readonly moveByFrameChange = new Subject<Frame>();
+  readonly offsetByFrameChange = new Subject<Frame>();
   readonly nextCommentChange = new Subject<void>();
   readonly previousCommentChange = new Subject<void>();
   
@@ -72,13 +73,19 @@ export class VideoService {
 
   readonly currentTime$ = this.video$.pipe(
     switchMap((video) => merge(
-      setTime(video, this.store.currentTime$),
-      offsetByFrames(video, this.moveByFrameChange, this.frameSize$, this.duration$),
-      offsetToNextComment(video, this.nextCommentChange, this.store.currentLayer$, this.fps$, this.totalFrames$),
-      offsetToPreviousComment(video, this.previousCommentChange, this.store.currentLayer$, this.fps$),
-      frameByFrame(video, 1, this.frameByFrameForwardStart, this.frameByFrameForwardEnd, this.frameSize$, this.duration$),
-      frameByFrame(video, -1, this.frameByFrameRewindStart, this.frameByFrameRewindEnd, this.frameSize$, this.duration$),
-      playPauseControls(video, this.playChange, this.pauseChange),
+      merge(
+        this.store.currentTime$,
+        offsetByFrames(video, this.offsetByFrameChange, this.frameSize$, this.duration$),
+        frameByFrame(video, 1, this.frameByFrameForwardStart, this.frameByFrameForwardEnd, this.frameSize$, this.duration$),
+        frameByFrame(video, -1, this.frameByFrameRewindStart, this.frameByFrameRewindEnd, this.frameSize$, this.duration$),
+        offsetToNextComment(video, this.nextCommentChange, this.store.currentLayer$, this.fps$, this.totalFrames$),
+        offsetToPreviousComment(video, this.previousCommentChange, this.store.currentLayer$, this.fps$),
+      ).pipe(
+        setCurrentTimeOperator(video)
+      ),
+      playPauseControls(video, this.playChange, this.pauseChange).pipe(
+        getCurrentTimeOperator(video),
+      ),
     )),
     shareReplay(),
   );
@@ -104,10 +111,10 @@ export class VideoService {
   }
 
   nextFrame(): void {
-    this.moveByFrameChange.next(+1 as Frame);
+    this.offsetByFrameChange.next(+1 as Frame);
   }
   previousFrame(): void {
-    this.moveByFrameChange.next(-1 as Frame);
+    this.offsetByFrameChange.next(-1 as Frame);
   }
 
   nextComment(): void {
@@ -167,7 +174,7 @@ function videoDimensions(
 
 
 function isVideoFile(file: File) {
-  return file.type === 'video/mp4';
+  return file.type === 'video/mp4' || file.type === 'video/webm';
 }
 
 function videoFileChange(files$: Observable<FileList>): Observable<File> {

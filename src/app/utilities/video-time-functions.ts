@@ -1,34 +1,64 @@
-import { animationFrameScheduler, defer, filter, groupBy, map, mapTo, merge, mergeMap, Observable, scan, share, shareReplay, switchMap, switchMapTo, takeUntil, tap, timer, withLatestFrom } from 'rxjs';
+import {
+  animationFrameScheduler,
+  filter,
+  map,
+  mapTo,
+  merge,
+  MonoTypeOperatorFunction,
+  Observable,
+  OperatorFunction,
+  pipe,
+  scan,
+  share,
+  switchMap,
+  switchMapTo,
+  takeUntil,
+  tap,
+  timer,
+  withLatestFrom,
+} from 'rxjs';
 
 import { Frame } from '../interfaces/Frame';
 import { VideoTime } from '../interfaces/VideoTime';
 import { closestDownNumber, closestUpNumber } from './closest';
 import { frameToVideoTime, videoTimeToFrame } from './videoTimeToFrame';
 
-export function setTime(
+
+export function setCurrentTimeOperator(
   video: HTMLVideoElement,
-  currentTime$: Observable<VideoTime>,
-): Observable<VideoTime> {
-  return currentTime$.pipe(
-    map((currentTime) => {
-      video.currentTime = currentTime;
-      return video.currentTime as VideoTime;
-    }),
-  );
+): MonoTypeOperatorFunction<VideoTime> {
+  return map((currentTime) => {
+    video.currentTime = currentTime;
+    return getCurrentTime(video);
+  });
 }
+
+export function getCurrentTimeOperator(
+  video: HTMLVideoElement,
+): OperatorFunction<any, VideoTime> {
+  return map(() => getCurrentTime(video));
+}
+
+export function getCurrentTime(video: HTMLVideoElement): VideoTime {
+  return video.currentTime as VideoTime;
+}
+
+export function getCurrentFrame(video: HTMLVideoElement, fps: number): Frame {
+  return videoTimeToFrame(getCurrentTime(video), fps)
+}
+
 
 export function playControls(
   video: HTMLVideoElement,
   play$: Observable<unknown>,
   pause$: Observable<unknown>,
-): Observable<VideoTime> {
+): Observable<number> {
   return play$.pipe(
     tap(() => video.play()),
     switchMapTo(timer(0, 0, animationFrameScheduler).pipe(
-      map(() => video.currentTime as VideoTime),
       takeUntil(pause$.pipe(
         tap(() => video.pause()),
-      ))
+      )),
     ))
   );
 }
@@ -64,7 +94,7 @@ export function playPauseControls(
   video: HTMLVideoElement,
   playPause$: Observable<void>,
   pause$: Observable<unknown>,
-): Observable<VideoTime> {
+): Observable<number> {
   const toggle$ = toggle(merge(
     playPause$.pipe(mapTo(PlayControl.Toggle)),
     pause$.pipe(mapTo(PlayControl.Pause)),
@@ -76,8 +106,6 @@ export function playPauseControls(
   return playControls(video, play, pause);
 }
 
-
-
 export function offsetToNextComment(
   video: HTMLVideoElement,
   offset$: Observable<void>,
@@ -87,15 +115,11 @@ export function offsetToNextComment(
 ): Observable<VideoTime> {
   return offset$.pipe(
     withLatestFrom(sequence$, fps$, totalFrames$),
-    map(([_, layer, fps, totalFrames]) => {
-      const currentTime = video.currentTime as VideoTime;
-      const currentFrame = videoTimeToFrame(currentTime, fps);
+    map(([_, sequence, fps, totalFrames]) => {
+      const frame = getCurrentFrame(video, fps) + 1 as Frame;
+      const frameWithComment = closestUpNumber(frame, sequence, totalFrames);
 
-      const nextCommentFrame = closestUpNumber(currentFrame + 1 as Frame, layer, totalFrames);
-
-      video.currentTime = frameToVideoTime(nextCommentFrame, fps);
-
-      return video.currentTime as VideoTime;
+      return frameToVideoTime(frameWithComment, fps);
     }),
   )
 }
@@ -108,15 +132,11 @@ export function offsetToPreviousComment(
 ): Observable<VideoTime> {
   return offset$.pipe(
     withLatestFrom(sequence$, fps$),
-    map(([_, layer, fps, ]) => {
-      const currentTime = video.currentTime as VideoTime;
-      const currentFrame = videoTimeToFrame(currentTime, fps);
+    map(([_, sequence, fps, ]) => {
+      const frame = getCurrentFrame(video, fps) - 1 as Frame;
+      const frameWithComment = closestDownNumber(frame, sequence);
 
-      const previousCommentFrame = closestDownNumber(currentFrame - 1 as Frame, layer);
-
-      video.currentTime = frameToVideoTime(previousCommentFrame, fps);
-
-      return video.currentTime as VideoTime;
+      return frameToVideoTime(frameWithComment, fps);
     }),
   )
 }
@@ -133,10 +153,7 @@ export function frameByFrame(
     withLatestFrom(frameSize$, duration$),
     switchMap(([_, frame, duration]) => timer(500, frame * 1000, animationFrameScheduler).pipe(
       takeUntil(end$),
-      map(() => {
-        video.currentTime = offset(video, size as Frame, frame, duration);
-        return video.currentTime as VideoTime;
-      }),
+      map(() => offset(video.currentTime as VideoTime, size as Frame, frame, duration)),
     )),
   )
 }
@@ -149,22 +166,17 @@ export function offsetByFrames(
 ): Observable<VideoTime> {
   return offset$.pipe(
     withLatestFrom(frameSize$, duration$),
-    map(([move, frame, duration, ]) => {
-      video.currentTime = offset(video, move, frame, duration)
-
-      return video.currentTime as VideoTime;
-    }),
+    map(([move, frame, duration]) => offset(video.currentTime as VideoTime, move, frame, duration)),
   )
 }
 
 const START_VIDEO_TIME = 0 as VideoTime;
 export function offset(
-  video: HTMLVideoElement,
+  currentTime: VideoTime,
   offset: Frame,
   frameSize: VideoTime,
   duration: VideoTime,
 ): VideoTime {
-  const currentTime = video.currentTime;
   const nextTime = currentTime + (offset * frameSize) as VideoTime;
 
   return (nextTime <= duration)

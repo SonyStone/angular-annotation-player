@@ -24,7 +24,7 @@ export class ScrollDirective implements OnDestroy {
     //   : this.scrollDown(group$)
     // ),
   ).subscribe((frame) => {
-    this.video.moveByFrameChange.next(frame)
+    this.video.offsetByFrameChange.next(frame)
     // this.video.currentTimeChange$.next(time);
   })
 

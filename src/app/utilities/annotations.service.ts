@@ -1,18 +1,7 @@
 import { Inject, Injectable, OnDestroy } from '@angular/core';
-import {
-  combineLatest,
-  filter,
-  map,
-  merge,
-  Observable,
-  ReplaySubject,
-  shareReplay,
-  Subject,
-  switchMap,
-  withLatestFrom,
-} from 'rxjs';
-import { Dimensions } from '../interfaces/Dimensions.interface';
+import { combineLatest, filter, map, merge, Observable, shareReplay, Subject, switchMap, withLatestFrom } from 'rxjs';
 
+import { Dimensions } from '../interfaces/Dimensions.interface';
 import { Frame } from '../interfaces/Frame';
 import { CanvasService } from './canvas.service';
 import { CanvasOffscreen } from './CanvasOffscreen';
@@ -33,20 +22,11 @@ export class AnnotationsService implements OnDestroy {
   restore$ = commentRestore(commentFileChange(this.files$), this.fileHandler$);
 
   remove$ = new Subject<Frame>();
-  // store$ = commentStore(
-  //   merge(
-  //     this.move$,
-  //     this.restore$,
-  //   ),
-  //   this.canvas.paint$,
-  //   this.video.currentFrame$,
-  //   this.remove$
-  // );
   
   currentImage$ = currentImage(this.video.currentFrame$, this.store.layer.current$);
 
   save$ = new Subject<void>();
-  file$ = commentSaveFile(this.save$, this.store.currentLayer$, this.fileHandler$);
+  file$ = commentSaveFile(this.save$, this.store.store$, this.fileHandler$);
 
   constructor(
     @Inject(LayersStore) private readonly store: LayersStore,
@@ -58,6 +38,9 @@ export class AnnotationsService implements OnDestroy {
       withLatestFrom(this.video.currentFrame$),
     ).subscribe(([imageData, frame]) => this.store.layer.add(frame, imageData));
 
+    this.restore$.subscribe((data) => {
+      this.store.set(data);
+    });
   }
 
   ngOnDestroy() : void {
@@ -92,8 +75,8 @@ export function commentStore(
 
 export function commentSaveFile(
   save$: Observable<void>,
-  data$: Observable<{ [key: Frame]: ImageData; }>,
-  fileHandler$: Observable<FileHandler>,
+  data$: Observable<any>,
+  fileHandler$: Observable<FileHandler<any>>,
 ): Observable<File> {
   return save$.pipe(
     withLatestFrom(data$, fileHandler$),
@@ -144,12 +127,11 @@ function isJsonFile(file: File) {
 
 export function commentRestore(
   file$: Observable<File>,
-  fileHandler$: Observable<FileHandler>,
-): Observable<Layer> {
+  fileHandler$: Observable<FileHandler<any>>,
+): Observable<any> {
   return file$.pipe(
     withLatestFrom(fileHandler$),
     switchMap(([file, fileHandler]) => fileHandler.restore(file)),
-    map((restore) => new Layer().set(restore)),
     shareReplay(),
   );
 }
