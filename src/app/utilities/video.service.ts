@@ -4,6 +4,7 @@ import {
   filter,
   fromEvent,
   map,
+  mapTo,
   merge,
   Observable,
   ReplaySubject,
@@ -18,6 +19,7 @@ import { Dimensions } from '../interfaces/Dimensions.interface';
 import { Frame } from '../interfaces/Frame';
 import { VideoTime } from '../interfaces/VideoTime';
 import { FILES_CHANGE } from './files-change';
+import { ShortcutService } from './shortcut.service';
 import { LayersStore } from './layers.store';
 import {
   frameByFrame,
@@ -75,7 +77,13 @@ export class VideoService {
     switchMap((video) => merge(
       merge(
         this.store.currentTime$,
-        offsetByFrames(video, this.offsetByFrameChange, this.frameSize$, this.duration$),
+        offsetByFrames(video, 
+          merge(
+            this.offsetByFrameChange,
+            this.keyboard.nextFrame$.pipe(mapTo(1)) as Observable<Frame>,
+            this.keyboard.previousFrame$.pipe(mapTo(-1)) as Observable<Frame>,
+          ),
+          this.frameSize$, this.duration$),
         frameByFrame(video, 1, this.frameByFrameForwardStart, this.frameByFrameForwardEnd, this.frameSize$, this.duration$),
         frameByFrame(video, -1, this.frameByFrameRewindStart, this.frameByFrameRewindEnd, this.frameSize$, this.duration$),
         offsetToNextComment(video, this.nextCommentChange, this.store.currentLayer$, this.fps$, this.totalFrames$),
@@ -83,7 +91,9 @@ export class VideoService {
       ).pipe(
         setCurrentTimeOperator(video)
       ),
-      playPauseControls(video, this.playChange, this.pauseChange).pipe(
+      playPauseControls(video,
+        merge(this.playChange, this.keyboard.play$),
+        this.pauseChange).pipe(
         getCurrentTimeOperator(video),
       ),
     )),
@@ -96,6 +106,7 @@ export class VideoService {
   constructor(
     @Inject(FILES_CHANGE) private readonly files$: Observable<FileList>,
     @Inject(LayersStore) private readonly store: LayersStore,
+    @Inject(ShortcutService) private readonly keyboard: ShortcutService,
   ) {}
 
   video(element: HTMLVideoElement): void {

@@ -92,7 +92,7 @@ export function toggle(
 
 export function playPauseControls(
   video: HTMLVideoElement,
-  playPause$: Observable<void>,
+  playPause$: Observable<unknown>,
   pause$: Observable<unknown>,
 ): Observable<number> {
   const toggle$ = toggle(merge(
