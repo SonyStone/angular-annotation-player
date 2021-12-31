@@ -1,4 +1,5 @@
 <div class="player">
+  
 
   <player scroll></player>
 
@@ -6,50 +7,41 @@
   <div>
     <files-input></files-input>
 
-    <button (click)="brush.compositeOperation$.next('source-over')">
+    <button (click)="controls.pen()" [disabled]="(brush.isPen$ | push)">
       <icon-pen></icon-pen>
     </button>
 
-    <button (click)="brush.compositeOperation$.next('destination-out')">
+    <button (click)="controls.eraser()" [disabled]="(brush.isEraser$ | push)">
       <icon-eraser></icon-eraser>
     </button>
     <color-selector></color-selector>
 
     <brush-size-selector></brush-size-selector>
-
-
-    <select [ngModel]="brush.compositeOperation$ | push"
-            (ngModelChange)="brush.compositeOperation$.next($event)">
-      <option *ngFor="let item of brush.compositeOperations"
-              [ngValue]="item.value">{{ item.name }}</option>
-    </select>
-
-
   </div>
 
   <div class="action">
-    <button (click)="video.previousComment()">
+    <button (click)="controls.previousComment()">
       <icon-skip-previous></icon-skip-previous>
     </button>
-    <button (click)="video.previousFrame()"
-            (pointerdown)="video.frameByFrameRewindStart.next($event)"
-            (pointerup)="video.frameByFrameRewindEnd.next($event)"
-            (pointerleave)="video.frameByFrameRewindEnd.next($event)">
+    <button (click)="controls.previousFrame()"
+            (pointerdown)="controls.rewind($event)"
+            (pointerup)="controls.rewind($event)"
+            (pointerleave)="controls.rewind($event)">
       <icon-fast-rewind></icon-fast-rewind>
     </button>
-    <button (click)="video.play()">
+    <button (click)="controls.play()">
       <icon-play></icon-play>
     </button>
-    <button (click)="video.pause()">
+    <button (click)="controls.pause()" [disabled]="!(video.isPlaying$ | push)">
       <icon-pause></icon-pause>
     </button>
-    <button (click)="video.nextFrame()"
-            (pointerdown)="video.frameByFrameForwardStart.next($event)"
-            (pointerup)="video.frameByFrameForwardEnd.next($event)"
-            (pointerleave)="video.frameByFrameForwardEnd.next($event)">
+    <button (click)="controls.nextFrame()"
+            (pointerdown)="controls.forward($event)"
+            (pointerup)="controls.forward($event)"
+            (pointerleave)="controls.forward($event)">
       <icon-fast-forward></icon-fast-forward>
     </button>
-    <button (click)="video.nextComment()">
+    <button (click)="controls.nextComment()">
       <icon-skip-next></icon-skip-next>
     </button>
   </div>
@@ -79,10 +71,10 @@
       <icon-save></icon-save>
     </button>
 
-    <button (click)="store.undo()">
+    <button (click)="controls.undo()">
       <icon-undo></icon-undo>
     </button>
-    <button (click)="store.redo()">
+    <button (click)="controls.redo()">
       <icon-redo></icon-redo>
     </button>
 

@@ -1,25 +1,29 @@
 import { Inject, Injectable } from '@angular/core';
 import {
+  animationFrameScheduler,
   combineLatest,
   filter,
   fromEvent,
   map,
-  mapTo,
   merge,
   Observable,
   ReplaySubject,
   shareReplay,
   startWith,
-  Subject,
   switchMap,
+  switchMapTo,
+  takeUntil,
+  tap,
+  timer,
   withLatestFrom,
 } from 'rxjs';
+import { AnonymousSubject } from 'rxjs/internal/Subject';
 
 import { Dimensions } from '../interfaces/Dimensions.interface';
 import { Frame } from '../interfaces/Frame';
 import { VideoTime } from '../interfaces/VideoTime';
+import { ControlsService } from './controls.service';
 import { FILES_CHANGE } from './files-change';
-import { ShortcutService } from './shortcut.service';
 import { LayersStore } from './layers.store';
 import {
   frameByFrame,
@@ -32,17 +36,9 @@ import {
 } from './video-time-functions';
 import { videoTimeToFrame } from './videoTimeToFrame';
 
-@Injectable()
-export class VideoService {
-
-  private readonly file$ = videoFileChange(this.files$);
-  readonly src$ = videoSrc(this.file$);
-
-  readonly fps$ = this.store.fps$;
-  readonly frameSize$ = videoFrameSize(this.fps$);
-
-  readonly videoChange = new ReplaySubject<HTMLVideoElement>();
-  readonly video$ = combineLatest([this.videoChange, this.src$]).pipe(
+function createVideoSubject(src$: Observable<string>) {
+  const destination = new ReplaySubject<HTMLVideoElement>()
+  const source = combineLatest([destination, src$]).pipe(
     map(([video, src]) => {
       video.src = src;
       video.setAttribute('type', 'video/mp4');
@@ -52,91 +48,71 @@ export class VideoService {
     shareReplay(),
   );
 
+  return new AnonymousSubject(destination, source);
+}
+
+
+@Injectable()
+export class VideoService {
+
+  
+  private readonly file$ = videoFileChange(this.files$);
+  readonly src$ = videoSrc(this.file$);
+
+  readonly video$ = createVideoSubject(this.src$);
+
+  readonly fps$ = this.store.fps$;
+  readonly frameSize$ = videoFrameSize(this.fps$);
+
   readonly duration$ = videoDuration(this.video$, this.frameSize$);
 
   /** Разрешение самого ролика внутри `video` */
   readonly dimensions$ = videoDimensions(this.video$);
 
   readonly totalFrames$ = videoTotalFrames(this.duration$, this.fps$);
-  
-
-  readonly playChange = new Subject<void>();
-  readonly pauseChange = new Subject<void>();
-  readonly frameByFrameForwardElement = new ReplaySubject<Element>();
-  readonly offsetByFrameChange = new Subject<Frame>();
-  readonly nextCommentChange = new Subject<void>();
-  readonly previousCommentChange = new Subject<void>();
-  
-  readonly frameByFrameForwardStart = new Subject<PointerEvent>();
-  readonly frameByFrameForwardEnd = new Subject<PointerEvent>();
-
-  readonly frameByFrameRewindStart = new Subject<PointerEvent>();
-  readonly frameByFrameRewindEnd = new Subject<PointerEvent>();
 
   readonly currentTime$ = this.video$.pipe(
     switchMap((video) => merge(
       merge(
         this.store.currentTime$,
-        offsetByFrames(video, 
-          merge(
-            this.offsetByFrameChange,
-            this.keyboard.nextFrame$.pipe(mapTo(1)) as Observable<Frame>,
-            this.keyboard.previousFrame$.pipe(mapTo(-1)) as Observable<Frame>,
-          ),
-          this.frameSize$, this.duration$),
-        frameByFrame(video, 1, this.frameByFrameForwardStart, this.frameByFrameForwardEnd, this.frameSize$, this.duration$),
-        frameByFrame(video, -1, this.frameByFrameRewindStart, this.frameByFrameRewindEnd, this.frameSize$, this.duration$),
-        offsetToNextComment(video, this.nextCommentChange, this.store.currentLayer$, this.fps$, this.totalFrames$),
-        offsetToPreviousComment(video, this.previousCommentChange, this.store.currentLayer$, this.fps$),
+        offsetByFrames(video, this.controls.offsetByFrame$, this.frameSize$, this.duration$),
+        frameByFrame(video, 1, this.controls.forward$, this.frameSize$, this.duration$),
+        frameByFrame(video, -1, this.controls.rewind$, this.frameSize$, this.duration$),
+        offsetToNextComment(video, this.controls.nextComment$, this.store.currentLayer$, this.fps$, this.totalFrames$),
+        offsetToPreviousComment(video, this.controls.previousComment$, this.store.currentLayer$, this.fps$),
       ).pipe(
         setCurrentTimeOperator(video)
       ),
-      playPauseControls(video,
-        merge(this.playChange, this.keyboard.play$),
-        this.pauseChange).pipe(
+      videoPlaying(video).pipe(
         getCurrentTimeOperator(video),
       ),
     )),
     shareReplay(),
   );
-
-
+  
+  readonly isPlaying$ = this.video$.pipe(
+    switchMap((video) => playPauseControls(this.controls.play$, this.controls.pause$).pipe(
+      tap((isPlay) => {
+        if (isPlay) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      })
+    )),
+    shareReplay(),
+  )
+  
   readonly currentFrame$ = videoCurrentFrame(this.currentTime$, this.fps$);
 
   constructor(
+    @Inject(ControlsService) private readonly controls: ControlsService,
     @Inject(FILES_CHANGE) private readonly files$: Observable<FileList>,
     @Inject(LayersStore) private readonly store: LayersStore,
-    @Inject(ShortcutService) private readonly keyboard: ShortcutService,
-  ) {}
-
-  video(element: HTMLVideoElement): void {
-    this.videoChange.next(element);
-  }
-
-  play(): void {
-    this.playChange.next()
-  }
-
-  pause(): void {
-    this.pauseChange.next();
-  }
-
-  nextFrame(): void {
-    this.offsetByFrameChange.next(+1 as Frame);
-  }
-  previousFrame(): void {
-    this.offsetByFrameChange.next(-1 as Frame);
-  }
-
-  nextComment(): void {
-    this.nextCommentChange.next();
-  }
-
-  previousComment(): void {
-    this.previousCommentChange.next();
+  ) {
+    this.isPlaying$.subscribe();
   }
 }
-
 
 function videoCurrentFrame(
   currentTime$: Observable<VideoTime>,
@@ -149,6 +125,14 @@ function videoCurrentFrame(
     map(([time, fps]) => videoTimeToFrame(time, fps)),
     shareReplay(),
   )
+}
+
+function videoPlaying(video: HTMLVideoElement): Observable<number> {
+  return fromEvent(video, 'play').pipe(
+    switchMapTo(timer(0, 0, animationFrameScheduler).pipe(
+      takeUntil(fromEvent(video, 'pause'))
+    )
+  ));
 }
 
 

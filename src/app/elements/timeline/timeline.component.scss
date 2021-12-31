@@ -5,4 +5,19 @@
   // height: 20px;
   // background-color: blue;
   touch-action: none;
+
+  --color-7-middlegray: #777;
+  --color-8-uppergray: #888;
+}
+
+svg {
+  path {
+    stroke-width: 1px;
+    stroke: var(--color-7-middlegray);
+  }
+
+  text {
+    font-size: 12px;
+    fill: var(--color-8-uppergray);
+  }
 }

@@ -50,30 +50,3 @@ export class KeyboardService {
     );
   }
 }
-
-@Injectable()
-export class ShortcutService {
-
-  readonly play$ = this.keyboard.shortcut(KeyCode.KeyP);
-
-  readonly undo$ = merge(
-    this.keyboard.shortcut([KeyCode.ControlLeft, KeyCode.KeyZ]),
-    this.keyboard.shortcut([KeyCode.ControlRight, KeyCode.KeyZ])
-  )
-
-  readonly redo$ = merge(
-    this.keyboard.shortcut([KeyCode.ControlLeft, KeyCode.KeyY]),
-    this.keyboard.shortcut([KeyCode.ControlRight, KeyCode.KeyY])
-  )
-
-  readonly nextFrame$ = this.keyboard.shortcut([KeyCode.ArrowRight]);
-
-  readonly previousFrame$ = this.keyboard.shortcut([KeyCode.ArrowLeft]);
-  
-  constructor(
-    @Inject(KeyboardService) private readonly keyboard: KeyboardService
-  ) {}
-
-}
-
-

@@ -10,6 +10,8 @@ import {
   pipe,
   scan,
   share,
+  subscribeOn,
+  Subscription,
   switchMap,
   switchMapTo,
   takeUntil,
@@ -91,19 +93,13 @@ export function toggle(
 }
 
 export function playPauseControls(
-  video: HTMLVideoElement,
   playPause$: Observable<unknown>,
   pause$: Observable<unknown>,
-): Observable<number> {
-  const toggle$ = toggle(merge(
+): Observable<boolean> {
+  return toggle(merge(
     playPause$.pipe(mapTo(PlayControl.Toggle)),
     pause$.pipe(mapTo(PlayControl.Pause)),
   ));
-
-  const play = toggle$.pipe(filter((v) => v));
-  const pause = toggle$.pipe(filter((v) => !v));
-
-  return playControls(video, play, pause);
 }
 
 export function offsetToNextComment(
@@ -144,11 +140,14 @@ export function offsetToPreviousComment(
 export function frameByFrame(
   video: HTMLVideoElement,
   size: 1 | -1 | Frame,
-  start$: Observable<PointerEvent>,
-  end$: Observable<PointerEvent>,
+  event$: Observable<PointerEvent>,
   frameSize$: Observable<VideoTime>,
   duration$: Observable<VideoTime>,
 ): Observable<VideoTime> {
+
+  const start$ = event$.pipe(filter(({ type }) => type === 'pointerdown'));
+  const end$ = event$.pipe(filter(({ type }) => type === 'pointerup' || type === 'pointerleave'));
+
   return start$.pipe(
     withLatestFrom(frameSize$, duration$),
     switchMap(([_, frame, duration]) => timer(500, frame * 1000, animationFrameScheduler).pipe(

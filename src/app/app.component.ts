@@ -1,13 +1,16 @@
-import { Component, ElementRef, Inject, OnDestroy } from '@angular/core';
-import { Subject, Subscription } from 'rxjs';
+import { Component, ElementRef, Inject } from '@angular/core';
+import { Subject } from 'rxjs';
 
 import { AnnotationsService } from './utilities/annotations.service';
 import { BrushService } from './utilities/brush.service';
 import { CanvasService } from './utilities/canvas.service';
+import { ControlsService } from './utilities/controls.service';
 import { FILES_CHANGE } from './utilities/files-change';
+import { KeyboardService } from './utilities/keyboard.service';
 import { LayersStore } from './utilities/layers.store';
-import { KeyboardService, ShortcutService } from './utilities/shortcut.service';
 import { VideoService } from './utilities/video.service';
+
+
 
 
 @Component({
@@ -21,12 +24,12 @@ import { VideoService } from './utilities/video.service';
     BrushService,
     LayersStore,
     KeyboardService,
-    ShortcutService,
+    ControlsService,
   ]
 })
-export class AppComponent implements OnDestroy {
+export class AppComponent {
 
-  private readonly subscription = new Subscription();
+  
 
   constructor(
     @Inject(BrushService) readonly brush: BrushService,
@@ -35,19 +38,6 @@ export class AppComponent implements OnDestroy {
     @Inject(FILES_CHANGE) readonly filesInput: Subject<FileList>,
     @Inject(LayersStore) readonly store: LayersStore,
     @Inject(ElementRef) readonly elementRef: ElementRef<Element>,
-    @Inject(ShortcutService) readonly shortcut: ShortcutService,
-  ) {
-    this.subscription.add(shortcut.undo$.subscribe(() => {
-      this.store.undo();
-    }));
-
-    this.subscription.add(shortcut.redo$.subscribe(() => {
-      this.store.redo();
-    }));
-
-  }
-
-  ngOnDestroy() {
-    this.subscription.unsubscribe();
-  }
+    @Inject(ControlsService) readonly controls: ControlsService,
+  ) {}
 }

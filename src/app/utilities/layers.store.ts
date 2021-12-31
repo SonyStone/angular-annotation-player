@@ -1,10 +1,12 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Inject, Injectable, OnDestroy } from '@angular/core';
 import { createState, select, Store, withProps } from '@ngneat/elf';
 import { stateHistory } from '@ngneat/elf-state-history';
 import { produce } from 'immer';
+import { Subscription } from 'rxjs';
 
 import { Frame } from '../interfaces/Frame';
 import { VideoTime } from '../interfaces/VideoTime';
+import { ControlsService } from './controls.service';
 import { frameToVideoTime } from './videoTimeToFrame';
 
 export interface LayersState {
@@ -74,9 +76,24 @@ export class LayersStore implements OnDestroy {
 
   layer = new Layer(this.store);
 
+  private readonly subscription = new Subscription();
+
+  constructor(
+    @Inject(ControlsService) controls: ControlsService,
+  ) {
+    this.subscription.add(controls.undo$.subscribe(() => {
+      this.history.undo();
+    }));
+
+    this.subscription.add(controls.redo$.subscribe(() => {
+      this.history.redo();
+    }));
+  }
+
   ngOnDestroy(): void {
     this.store.destroy();
     this.history.destroy();
+    this.subscription.unsubscribe();
   }
 
   set(data: LayersState) {
@@ -115,14 +132,6 @@ export class LayersStore implements OnDestroy {
 
   getFPS(): number {
     return this.store.value.metadata.fps;
-  }
-
-  undo(): void {
-    this.history.undo();
-  }
-
-  redo(): void {
-    this.history.redo();
   }
 }
 

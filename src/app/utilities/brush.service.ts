@@ -1,5 +1,5 @@
-import { Injectable } from "@angular/core";
-import { BehaviorSubject } from "rxjs";
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, map } from 'rxjs';
 
 export const DEFAULT_BRUSH_COLOR = '#ffffff';
 
@@ -39,4 +39,7 @@ export class BrushService {
 
   compositeOperations = COMPOSITE_OPERATIONS.map((value) => ({ name: value, value }))
   compositeOperation$ = new BehaviorSubject(COMPOSITE_OPERATIONS[0]);
+
+  isPen$ = this.compositeOperation$.pipe(map((v) => v === COMPOSITE_OPERATIONS[0]));
+  isEraser$ = this.compositeOperation$.pipe(map((v) => v === COMPOSITE_OPERATIONS[1]))
 }

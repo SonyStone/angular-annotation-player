@@ -1,9 +1,8 @@
 import { Directive, ElementRef, Inject, OnDestroy } from '@angular/core';
-import { fromEvent, map, Observable } from 'rxjs';
-import { withLatestFrom } from 'rxjs/operators';
+import { fromEvent, map } from 'rxjs';
 
 import { Frame } from '../interfaces/Frame';
-import { VideoTime } from '../interfaces/VideoTime';
+import { ControlsService } from '../utilities/controls.service';
 import { VideoService } from '../utilities/video.service';
 
 
@@ -18,17 +17,12 @@ export class ScrollDirective implements OnDestroy {
 
   private readonly subscription = this.scroll$.pipe(
     map((event) => ((event.deltaY > 0) ? 1 : -1) as Frame),
-    // groupBy((event) => event.deltaY > 0),
-    // mergeMap((group$) => (group$.key)
-    //   ? this.scrollUp(group$)
-    //   : this.scrollDown(group$)
-    // ),
   ).subscribe((frame) => {
-    this.video.offsetByFrameChange.next(frame)
-    // this.video.currentTimeChange$.next(time);
+    this.actions.offsetByFrame(frame);
   })
 
   constructor(
+    @Inject(ControlsService) private readonly actions: ControlsService,
     @Inject(VideoService) private readonly video: VideoService,
     @Inject(ElementRef) private readonly elementRef: ElementRef<Element>,
   ) {}
@@ -36,25 +30,4 @@ export class ScrollDirective implements OnDestroy {
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
   }
-
-  private scrollUp(scroll: Observable<WheelEvent>) {
-    return scroll.pipe(
-      withLatestFrom(this.video.frameSize$, this.video.currentTime$, this.video.duration$),
-      map(([_, frame, currentTime, duration]) => {
-        const nextTime = currentTime + frame as VideoTime;
-        return nextTime > duration ? currentTime as VideoTime : nextTime
-      }),
-    );
-  }
-
-  private scrollDown(scroll: Observable<WheelEvent>) {
-    return scroll.pipe(
-      withLatestFrom(this.video.frameSize$, this.video.currentTime$, this.video.duration$),
-      map(([_, frame, currentTime]) => {
-        const nextTime = currentTime - frame as VideoTime;
-        return nextTime <= 0 ? currentTime as VideoTime : nextTime
-      }),
-    );
-  }
-
 }

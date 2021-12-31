@@ -27,7 +27,7 @@ export class VideoDirective  {
     @Inject(VideoService) private readonly video: VideoService,
     @Inject(LayersStore) private readonly store: LayersStore,
   ) {
-    video.video(elementRef.nativeElement);
+    video.video$.next(elementRef.nativeElement);
   }
 }
 

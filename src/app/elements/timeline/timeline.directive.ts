@@ -1,7 +1,7 @@
 import { Directive, ElementRef } from '@angular/core';
 
 @Directive({
-  selector: 'rect[timeline]',
+  selector: '[timeline]',
   exportAs: 'timeline'
 })
 export class TimelineDirective {
@@ -10,5 +10,6 @@ export class TimelineDirective {
 
   constructor(
     private readonly element: ElementRef<SVGRectElement>
-  ) {}
+  ) {
+  }
 }
