@@ -1,5 +1,7 @@
-<div class="player">
-  
+<div class="player"
+     fileDrop
+     (fileChange)="filesInput.next($event)">
+
 
   <player scroll></player>
 
@@ -7,11 +9,13 @@
   <div>
     <files-input></files-input>
 
-    <button (click)="controls.pen()" [disabled]="(brush.isPen$ | push)">
+    <button (click)="controls.pen()"
+            [disabled]="(brush.isPen$ | push)">
       <icon-pen></icon-pen>
     </button>
 
-    <button (click)="controls.eraser()" [disabled]="(brush.isEraser$ | push)">
+    <button (click)="controls.eraser()"
+            [disabled]="(brush.isEraser$ | push)">
       <icon-eraser></icon-eraser>
     </button>
     <color-selector></color-selector>
@@ -32,7 +36,8 @@
     <button (click)="controls.play()">
       <icon-play></icon-play>
     </button>
-    <button (click)="controls.pause()" [disabled]="!(video.isPlaying$ | push)">
+    <button (click)="controls.pause()"
+            [disabled]="!(video.isPlaying$ | push)">
       <icon-pause></icon-pause>
     </button>
     <button (click)="controls.nextFrame()"

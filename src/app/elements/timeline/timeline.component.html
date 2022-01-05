@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 800 30">
+     [attr.viewBox]="(viewBox$ | push)">
 
 
 
@@ -12,7 +12,8 @@
         fill="none" />
 
   <g #slider
-     [slider]="timeline.rect"
+     slider
+     [width]="(resize$ | push)?.width"
      style="cursor: e-resize;">
     <rect x="-8"
           y="10"
@@ -41,8 +42,8 @@
           fill="#ffffff" />
   </g>
 
-  <path [attr.d]="svgPath" />
-  <text *ngFor="let svgText of svgTexts; let index = index"
+  <path [attr.d]="(svgPath$ | push)" />
+  <text *ngFor="let svgText of (svgTexts$ | push); let index = index"
         [attr.key]="index"
         [attr.transform]="svgText.transform">{{ svgText.text }}</text>
 </svg>

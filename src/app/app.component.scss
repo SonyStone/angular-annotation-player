@@ -4,7 +4,10 @@ p {
 
 :host {
   display: flex;
-  margin: 50px;
+  // margin: 50px;
+  height: 100%;
+  padding: 50px;
+  box-sizing: border-box;
 }
 
 .player {

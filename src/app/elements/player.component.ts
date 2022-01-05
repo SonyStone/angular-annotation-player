@@ -5,28 +5,40 @@ import { VideoService } from '../utilities/video.service';
 @Component({
   selector: 'player',
   template: `
+  <div class="column-container">
     <div class="wrapper">
       <canvas paint></canvas>
       <video *ngIf="video.src$ | push"></video>
     </div>
+  </div>
   `,
   styles: [`
     :host {
       display: flex;
-      justify-content: center;
-      max-height: 500px;
-      max-width: 895px;
+      place-content: center;
+      flex: 1 0 0;
+      height: 0;
+      background-color: black;
+      overflow: hidden;
+    }
+
+    .column-container {
+      display: flex;
+      flex-direction: column;
+      place-content: center;
     }
 
     .wrapper {
-      display: flex;
+      transform: matrix(1, 0, 0, 1, 0, 0);
       position: relative;
+      max-height: 100%;
+      max-width: 100%;
+      place-self: center;
     }
 
     video {
-      height: auto;
-      /* max-height: 80vh; */
-      width: 100%;
+      max-height: 100%;
+      max-width: 100%;
 
       touch-action: none;
       pointer-events: none;

@@ -1,6 +1,5 @@
 import { Directive, ElementRef, Inject, Input, OnDestroy, Renderer2 } from '@angular/core';
-import { Store } from '@ngneat/elf';
-import { combineLatest, map, merge, pipe, shareReplay, Subscription, withLatestFrom } from 'rxjs';
+import { combineLatest, map, merge, Observable, pipe, shareReplay, Subject, Subscription } from 'rxjs';
 
 import { pointerdrag } from '../../events/pointer';
 import { TimelinePosition } from '../../interfaces/TimelinePosition';
@@ -16,13 +15,16 @@ export class SliderDirective implements OnDestroy {
 
   private element = this.elementRef.nativeElement;
 
-  @Input('slider') rect!: DOMRect;
+  private width$ = new Subject<number>()
+  @Input('width') set width(width: number | undefined) {
+    if (width) {
+      this.width$.next(width);
+    }
+  };
 
-  private toFrame = pipe(
-    withLatestFrom<PointerEvent, [VideoTime]>(this.video.duration$),
-    map(([pointerEvent, duration]) => {
+  private toFrame = pipe<Observable<[PointerEvent, number, VideoTime]>, Observable<VideoTime>>(
+    map(([pointerEvent, width, duration]) => {
       const pointerX = pointerEvent.offsetX;
-      const width = this.rect.width;
 
       const position = (pointerEvent.offsetX <= 0)
         ? 0
@@ -34,7 +36,11 @@ export class SliderDirective implements OnDestroy {
     }),
   )
 
-  drag$ = pointerdrag(this.element).pipe(
+  drag$ = combineLatest([
+    pointerdrag(this.element),
+    this.width$,
+    this.video.duration$
+  ]).pipe(
     this.toFrame,
     shareReplay(),
   );
@@ -54,8 +60,10 @@ export class SliderDirective implements OnDestroy {
         this.drag$,
         this.video.currentTime$,
       ),
-      this.video.duration$]).pipe(
-      map(([time, duration]) => ((time / duration * this.rect.width) || 0) as TimelinePosition),
+      this.video.duration$,
+      this.width$,
+    ]).pipe(
+      map(([time, duration, width]) => ((time / duration * width) || 0) as TimelinePosition),
     ).subscribe((translate) => {
       this.render.setAttribute(this.elementRef.nativeElement, 'transform', `translate(${translate})`);
     }));

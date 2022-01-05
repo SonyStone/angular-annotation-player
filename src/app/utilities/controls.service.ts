@@ -44,7 +44,7 @@ export class ControlsService {
   private readonly frameByFrameForward = new Subject<PointerEvent>();
   readonly forward$ = this.frameByFrameForward;
 
-  rewind(pointerevent: PointerEvent): void { this.frameByFrameForward.next(pointerevent) }
+  rewind(pointerevent: PointerEvent): void { this.frameByFrameRewind.next(pointerevent) }
   private readonly frameByFrameRewind = new Subject<PointerEvent>();
   readonly rewind$ = this.frameByFrameRewind;
 

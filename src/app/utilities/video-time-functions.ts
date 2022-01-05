@@ -7,11 +7,8 @@ import {
   MonoTypeOperatorFunction,
   Observable,
   OperatorFunction,
-  pipe,
   scan,
   share,
-  subscribeOn,
-  Subscription,
   switchMap,
   switchMapTo,
   takeUntil,
@@ -30,7 +27,9 @@ export function setCurrentTimeOperator(
   video: HTMLVideoElement,
 ): MonoTypeOperatorFunction<VideoTime> {
   return map((currentTime) => {
-    video.currentTime = currentTime;
+    if (currentTime !== Infinity) {
+      video.currentTime = currentTime;
+    }
     return getCurrentTime(video);
   });
 }

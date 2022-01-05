@@ -10,7 +10,7 @@ import { BrushSizeSelectComponent } from './elements/brush-size-selector.compone
 import { CanvasPaintDirective } from './elements/canvas-paint.directive';
 import { ColorSelectorComponent } from './elements/color-selector.component';
 import { FileDownloadDirective } from './elements/file-download.directive';
-import { FileDropDirective } from './elements/file-drop.directive';
+import { FileDropModule } from './elements/file-drop/file-drop.module';
 import { FilesInputComponent } from './elements/files-input.component';
 import { FrameRateSelectorComponent } from './elements/fps-selector.component';
 import { FramePipe } from './elements/frame.pipe';
@@ -45,6 +45,7 @@ import { VideoDirective } from './elements/video.directive';
     ],
     [
       TimelineModule,
+      FileDropModule,
       AppCommonModule,
     ],
     [
@@ -63,7 +64,6 @@ import { VideoDirective } from './elements/video.directive';
     ],
   ],
   declarations: [
-    FileDropDirective,
     AppComponent,
     CanvasPaintDirective,
     FileDownloadDirective,
