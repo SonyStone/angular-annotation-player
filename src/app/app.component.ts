@@ -11,8 +11,6 @@ import { LayersStore } from './utilities/layers.store';
 import { VideoService } from './utilities/video.service';
 
 
-
-
 @Component({
   selector: 'my-app',
   templateUrl: './app.component.html',
@@ -28,9 +26,6 @@ import { VideoService } from './utilities/video.service';
   ]
 })
 export class AppComponent {
-
-  
-
   constructor(
     @Inject(BrushService) readonly brush: BrushService,
     @Inject(AnnotationsService) readonly annotations: AnnotationsService,
