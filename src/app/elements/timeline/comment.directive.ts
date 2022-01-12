@@ -8,15 +8,18 @@ import { VideoService } from '../../utilities/video.service';
 import { TimelineCommentsService } from '../../utilities/timeline-comment-store';
 import { LayersStore } from '../../utilities/layers.store';
 
+const START_OFFEST = 8
 
 @Directive({
   selector: '[comment]'
 })
 export class CommentDirective implements OnDestroy {
 
-  rect$ = new Subject<DOMRect>();
-  @Input() set rect(rect: DOMRect) {
-    this.rect$.next(rect);
+  private width$ = new Subject<number>()
+  @Input('width') set width(width: number | undefined | null) {
+    if (width) {
+      this.width$.next(width);
+    }
   };
 
   frame$ = new Subject<Frame>();
@@ -30,10 +33,9 @@ export class CommentDirective implements OnDestroy {
   private move$ = pointermove(this.element);
 
   private toFrame = pipe(
-    withLatestFrom<PointerEvent, [Frame, DOMRect]>(this.video.totalFrames$, this.rect$),
-    map(([pointerEvent, duration, rect]) => {
-      const pointerX = pointerEvent.offsetX;
-      const width = rect.width;
+    withLatestFrom<PointerEvent, [Frame, number]>(this.video.totalFrames$, this.width$),
+    map(([pointerEvent, duration, width]) => {
+      const pointerX = pointerEvent.offsetX - START_OFFEST;
 
       const position = (pointerEvent.offsetX <= 0)
         ? 0
@@ -79,11 +81,11 @@ export class CommentDirective implements OnDestroy {
 
     this.subscription.add(
       combineLatest([
-        merge(this.drag$, this.frame$), this.video.totalFrames$, this.rect$])
+        merge(this.drag$, this.frame$), this.video.totalFrames$, this.width$])
       .pipe(
-      map(([time, duration, rect]) => ((time / duration * rect.width) || 0) as TimelinePosition),
+      map(([time, duration, width]) => ((time / duration * width) || 0) as TimelinePosition),
     ).subscribe((translate) => {
-      this.render.setAttribute(this.elementRef.nativeElement, 'transform', `translate(${translate})`);
+      this.render.setAttribute(this.elementRef.nativeElement, 'transform', `translate(${translate + START_OFFEST})`);
     }));
   }
 

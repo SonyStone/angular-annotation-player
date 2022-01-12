@@ -10,11 +10,14 @@ export function secondsToTimecode(time: VideoTime, fps: number): Timecode {
 	const seconds = Math.floor(time % 60);
 	const frames = Math.floor(((time % 1) * fps));
 	
-	const result = (hours < 10 ? "0" + hours : hours) + ":"
-	+ (minutes < 10 ? "0" + minutes : minutes) + ":"
-	+ (seconds < 10 ? "0" + seconds : seconds) + ":"
-	+ (frames < 10 ? "0" + frames : frames);
+	const result = formatTimeItem(hours) + ":"
+		+ formatTimeItem(minutes) + ":"
+		+ formatTimeItem(seconds) + ":"
+		+ formatTimeItem(frames);
 
 	return result as Timecode;
+}
 
+export function formatTimeItem(item: number): string {
+	return (item < 10) ? `0${item}` : `${item}`;
 }

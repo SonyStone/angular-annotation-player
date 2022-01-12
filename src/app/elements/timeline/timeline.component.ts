@@ -1,27 +1,29 @@
 import { KeyValue } from '@angular/common';
-import { Component, ElementRef, Inject, OnDestroy } from '@angular/core';
-import { map, of, shareReplay, Subscription, tap, withLatestFrom } from 'rxjs';
+import { Component, ElementRef, Inject, OnDestroy, ViewChild } from '@angular/core';
+import {
+  combineLatest,
+  map,
+  merge,
+  Observable,
+  of,
+  ReplaySubject,
+  shareReplay,
+  startWith,
+  Subscription,
+  switchMap,
+  withLatestFrom,
+} from 'rxjs';
 
+import { pointerdrag } from '../../events/pointer';
 import { Frame } from '../../interfaces/Frame';
+import { TimelinePosition } from '../../interfaces/TimelinePosition';
+import { VideoTime } from '../../interfaces/VideoTime';
 import { LayersStore } from '../../utilities/layers.store';
 import { resize } from '../../utilities/resize';
 import { TimelineCommentsService } from '../../utilities/timeline-comment-store';
+import { VideoService } from '../../utilities/video.service';
 
-export enum RulerDirection {
-	Horizontal = "H",
-	Vertical = "V",
-}
-
-// Apparently the modulo operator in js does not work properly.
-function mod(n: number, m: number) {
-	const remain = n % m;
-	return Math.floor(remain >= 0 ? remain : remain + m);
-};
-
-const RULER_THICKNESS = 16;
-const MAJOR_MARK_THICKNESS = 16;
-const MEDIUM_MARK_THICKNESS = 6;
-const MINOR_MARK_THICKNESS = 3;
+const START_OFFEST = 8
 
 @Component({
   selector: 'timeline',
@@ -37,24 +39,76 @@ export class TimelineComponent implements OnDestroy {
     return item.value;
   }
 
-  private timeline$ = of(this.elementRef.nativeElement)
-
+  private timeline$: Observable<Element> = of(this.elementRef.nativeElement);
   readonly resize$ = resize(this.timeline$).pipe(
     shareReplay(),
   );
+
+  readonly width$ = this.resize$.pipe(map(({ width }) => width - 16));
 
   readonly viewBox$ = this.resize$.pipe(
     map(({ height, width}) => `0 0 ${width} ${height}`),
   );
 
-  private subscription = new Subscription();
+  readonly svgTimeline$ = svgTimeline(this.width$, this.video.duration$, this.video.fps$)
+  readonly svgPath$ = this.svgTimeline$.pipe(map(({ svgPath }) => svgPath));
+  readonly svgTexts$ = this.svgTimeline$.pipe(map(({ svgText }) => svgText));
 
+  
+  @ViewChild('sliderDragZone', { static: true })
+  set sliderDragZone(element: ElementRef<SVGRectElement>) {
+    this.sliderDragZone$.next(element.nativeElement);
+  }
+  private sliderDragZone$ = new ReplaySubject<SVGRectElement>();
+
+  drag$ = this.sliderDragZone$.pipe(
+    switchMap((element) => pointerdrag(element)),
+    map(({ offsetX }) => offsetX - START_OFFEST),
+    withLatestFrom(this.width$),
+    map(([pointerX, width]) => {   
+      const position = (pointerX <= 0)
+        ? 0
+        : (pointerX >= width)
+          ? width
+          : pointerX ;
+    
+      return position as TimelinePosition;
+    }),
+    shareReplay(),
+  )
+
+  time$ = this.drag$.pipe(
+    withLatestFrom(this.video.duration$, this.width$),
+    map(([position, duration, width]) => (position * duration  / width) as VideoTime),
+    shareReplay(),
+  )
+
+  translate$ = combineLatest([
+    merge(
+      this.time$,
+      this.video.currentTime$,
+    ),
+    this.video.duration$,
+    this.width$,
+  ]).pipe(
+    map(([time, duration, width]) => ((time / duration * width) || 0) as TimelinePosition),
+    startWith(0),
+    map((translate) => `translate(${translate + START_OFFEST})`)
+  );
+
+
+
+  private subscription = new Subscription();
 
   constructor(
     @Inject(TimelineCommentsService) readonly timelineComments: TimelineCommentsService,
     @Inject(LayersStore) store: LayersStore,
     @Inject(ElementRef) private readonly elementRef: ElementRef<Element>,
+    @Inject(VideoService) private readonly video: VideoService,
   ) {
+
+    this.subscription.add(this.time$.subscribe((time) => store.setTime(time)));
+
     this.subscription.add(
       timelineComments.move$.pipe(
         withLatestFrom(store.currentLayer$),
@@ -68,77 +122,83 @@ export class TimelineComponent implements OnDestroy {
   ngOnDestroy() {
     this.subscription.unsubscribe();
   }
+}
 
-  direction = RulerDirection.Horizontal;
-  origin: number = 0;
-  numberInterval = 10;
-  majorMarkSpacing = 100;
-  mediumDivisions = 8;
-  minorDivisions = 2;
 
-  readonly svgPath$ = this.resize$.pipe(
-    map(({ width }) => {
-      const isVertical = this.direction === RulerDirection.Vertical;
-      const lineDirection = RulerDirection.Vertical;
-    
-      const divisions = this.majorMarkSpacing / this.mediumDivisions / this.minorDivisions;
-      const majorMarksFrequency = this.mediumDivisions * this.minorDivisions;
-  
-      let dPathAttribute = "";
-      let i = 0;
-      for (let location = 0; location <= width; location += divisions) {
-        let length;
+const RULER_THICKNESS = 16;
+const MAJOR_MARK_THICKNESS = 16;
+const MEDIUM_MARK_THICKNESS = 6;
+const MINOR_MARK_THICKNESS = 3;
 
-        if (i % majorMarksFrequency === 0) {
-          length = MAJOR_MARK_THICKNESS;
-        } else if (i % this.minorDivisions === 0) {
-          length = MEDIUM_MARK_THICKNESS;
-        } else {
-          length = MINOR_MARK_THICKNESS;
-        }
+function svgTimeline(
+  width$: Observable<number>,
+  duration$: Observable<VideoTime>,
+  fps$: Observable<number>
+): Observable<{
+  svgPath: string,
+  svgText: {
+    transform: number;
+    text: string;
+  }[],
+}> {
+  return combineLatest([
+    duration$,
+    fps$,
+    width$,
+  ]).pipe(
+    map(([duration, fps, width]) => {
 
-        i += 1;
-  
-        const destination = Math.round(location) + 0.5;
+      
+      const seconds = Math.floor(duration);
 
-        const startPoint = isVertical
-          ? `${RULER_THICKNESS - length},${destination}`
-          : `${destination},${RULER_THICKNESS - length}`;
+      let dPathAttribute: string = '';
 
-        dPathAttribute += `M${startPoint}${lineDirection}${RULER_THICKNESS} `;
-      }
-  
-      return dPathAttribute;
-    })
-  )
+      const min_step_width = (width / seconds);
 
-  readonly svgTexts$ = this.resize$.pipe(
-    map(({ width }) => {
-      const isVertical = this.direction === RulerDirection.Vertical;
+      const step_time = getStepTime(min_step_width, 50, 1.1);
+      const step_frame = fps * step_time;
+      const step_px = min_step_width * step_time;
 
-      const offsetStart = mod(this.origin, this.majorMarkSpacing);
-      const shiftedOffsetStart = offsetStart - this.majorMarkSpacing;
-  
       const svgTextCoordinates = [];
-  
-      let text = (Math.ceil(-this.origin / this.majorMarkSpacing) - 1) * this.numberInterval;
-  
-      for (let location = shiftedOffsetStart; location < width; location += this.majorMarkSpacing) {
-        const destination = Math.round(location);
-        const x = isVertical ? 9 : destination + 2;
-        const y = isVertical ? destination + 1 : 9;
-  
-        let transform = `translate(${x} ${y})`;
-        if (isVertical) {
-          transform += " rotate(270)";
-        }
-  
+
+      const y = RULER_THICKNESS - MEDIUM_MARK_THICKNESS;
+
+      const start = 8;
+      const end = width + start;
+
+      let frame = 0;
+      let time = 0;
+      let positionX = start
+      while (positionX <= end) {
+
+        let transform = positionX + 2;
+        const text = `${Math.floor(frame)}`;
+
         svgTextCoordinates.push({ transform, text });
-  
-        text += this.numberInterval;
+        dPathAttribute += `M${positionX},${y}V${RULER_THICKNESS}`;
+
+        positionX += step_px;
+        time += step_time;
+        frame += step_frame;
       }
-  
-      return svgTextCoordinates;
+
+      dPathAttribute += `M${end},${y}V${RULER_THICKNESS}`;
+      
+      return { svgPath: dPathAttribute, svgText: svgTextCoordinates };
     }),
+    shareReplay(),
   )
+}
+
+function getStepTime(stepWidth: number, minWidth: number, step = 2): number {
+
+  const getStep = (stepTime: number): number => {
+    if (stepWidth * stepTime < minWidth) {
+      return getStep(stepTime * step);
+    } else {
+      return stepTime
+    }
+  }
+
+  return getStep(1);
 }

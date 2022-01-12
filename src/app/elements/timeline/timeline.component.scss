@@ -11,13 +11,19 @@
 }
 
 svg {
-  path {
+  .ruler {
     stroke-width: 1px;
     stroke: var(--color-7-middlegray);
+  }
+
+  .slider {
+    pointer-events: none;
   }
 
   text {
     font-size: 12px;
     fill: var(--color-8-uppergray);
+    pointer-events: none;
+    user-select: none;
   }
 }

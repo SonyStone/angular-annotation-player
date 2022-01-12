@@ -1,49 +1,45 @@
 <svg xmlns="http://www.w3.org/2000/svg"
      [attr.viewBox]="(viewBox$ | push)">
 
-
-
-  <rect timeline
-        #timeline="timeline"
+  <rect #sliderDragZone
+        class="sliderDragZone"
+        style="cursor: e-resize;"
+        fill="#ddd"
         x="0"
-        y="10"
-        width="800"
-        height="20"
-        fill="none" />
+        y="20"
+        [attr.width]="((width$ | push) ?? 0) + 16"
+        height="10" />
 
-  <g #slider
-     slider
-     [width]="(resize$ | push)?.width"
-     style="cursor: e-resize;">
-    <rect x="-8"
-          y="10"
-          width="16"
-          height="20" />
-    <rect x="0"
-          y="10"
-          width="1"
-          height="20"
-          fill="#ffffff" />
-  </g>
+
 
   <g *ngFor="let item of (timelineComments.store$ | push | keyvalue); trackBy: trackByFn; let i = index"
      [comment]="item.key"
-     [rect]="timeline.rect"
+     [width]="(width$ | push)"
      style="cursor: e-resize;">
     <ellipse cx="0.5"
-             cy="7"
+             cy="14"
              rx="3"
              ry="3"
              fill="#00ff00" />
-    <rect x="0"
-          y="10"
-          width="1"
-          height="20"
-          fill="#ffffff" />
   </g>
 
-  <path [attr.d]="(svgPath$ | push)" />
+  <path class="ruler"
+        [attr.d]="(svgPath$ | push)" />
   <text *ngFor="let svgText of (svgTexts$ | push); let index = index"
         [attr.key]="index"
-        [attr.transform]="svgText.transform">{{ svgText.text }}</text>
+        [attr.x]="svgText.transform"
+        y="12">{{ svgText.text }}</text>
+
+        <g class="slider"
+        [attr.transform]="(translate$ | push)"
+        style="cursor: e-resize;">
+       <rect x="0"
+             y="10"
+             width="1"
+             height="12" />
+       <path d="M-8,30 h16 l-7,-8 h-1 z"
+             stroke="black"
+             fill="none"></path>
+     </g>
+
 </svg>
