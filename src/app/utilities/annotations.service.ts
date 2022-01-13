@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnDestroy } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { combineLatest, filter, map, merge, Observable, shareReplay, Subject, switchMap, withLatestFrom } from 'rxjs';
 
 import { Dimensions } from '../interfaces/Dimensions.interface';
@@ -14,9 +14,7 @@ import { VideoService } from './video.service';
 
 
 @Injectable()
-export class AnnotationsService implements OnDestroy {
-  // add$ = new ReplaySubject<[Frame, ImageData]>();
-
+export class AnnotationsService {
   fileHandler$ = fileHandler(this.video.dimensions$);
 
   restore$ = commentRestore(commentFileChange(this.files$), this.fileHandler$);
@@ -41,10 +39,6 @@ export class AnnotationsService implements OnDestroy {
     this.restore$.subscribe((data) => {
       this.store.set(data);
     });
-  }
-
-  ngOnDestroy() : void {
-
   }
 }
 

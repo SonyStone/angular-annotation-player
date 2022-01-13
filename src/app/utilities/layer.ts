@@ -1,5 +1,6 @@
 import { KeyValue } from "@angular/common";
 import { Frame } from "../interfaces/Frame";
+import { closestDown } from "./closest";
 
 export class Layer {
   private store: { [key: Frame]: ImageData} = {}
@@ -41,7 +42,7 @@ export class Layer {
   }
 
   get(frame: Frame): ImageData | undefined {
-    // return closest(frame, this.store);
+    // return closestDown(frame, this.store);
     return this.store[frame];
   }
 

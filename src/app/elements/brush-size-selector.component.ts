@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
 
 import { BrushService } from '../utilities/brush.service';
 
@@ -11,6 +11,7 @@ import { BrushService } from '../utilities/brush.service';
          [ngModel]="brush.size$ | push"
          (ngModelChange)="brush.size$.next($event)">
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
 export class BrushSizeSelectComponent {

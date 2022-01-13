@@ -1,9 +1,10 @@
-import { Component, NgModule } from '@angular/core';
+import { ChangeDetectionStrategy, Component, NgModule } from '@angular/core';
 
 @Component({
   selector: `icon-fast-rewind`,
   templateUrl: `fast-rewind.svg`,
   styleUrls: ['icon.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class IconFastRewindComponent {}
 

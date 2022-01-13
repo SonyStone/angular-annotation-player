@@ -1,5 +1,5 @@
 import { KeyValue } from '@angular/common';
-import { Component, ElementRef, Inject, OnDestroy, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DoCheck, ElementRef, Inject, OnDestroy, ViewChild } from '@angular/core';
 import {
   combineLatest,
   map,
@@ -32,6 +32,7 @@ const START_OFFEST = 8
   providers: [
     TimelineCommentsService,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TimelineComponent implements OnDestroy {
 

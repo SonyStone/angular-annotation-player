@@ -5,9 +5,9 @@ import {
   Pipe,
   PipeTransform,
   Type,
-  ɵstringify as stringify,
   ɵisPromise,
   ɵisSubscribable,
+  ɵstringify as stringify,
 } from '@angular/core';
 import { Observable, Subscribable, Unsubscribable } from 'rxjs';
 
@@ -173,8 +173,6 @@ export class PushPipe implements OnDestroy, PipeTransform {
     if (async === this.obj) {
       this.latestValue = value;
       this.cd.detectChanges();
-      // markDirty((this.viewContainerRef as any)?._hostView?.[8]);
-      // this._ref
     }
   }
 }

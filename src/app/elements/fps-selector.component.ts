@@ -1,4 +1,4 @@
-import { Component, Inject, Injectable, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Injectable, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { filter } from 'rxjs';
 
@@ -51,7 +51,8 @@ export class FrameRateService implements OnDestroy {
   `,
   providers: [
     FrameRateService,
-  ]
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
 export class FrameRateSelectorComponent {

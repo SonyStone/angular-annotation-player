@@ -1,4 +1,4 @@
-import { Component, ElementRef, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Inject } from '@angular/core';
 import { Subject } from 'rxjs';
 
 import { AnnotationsService } from './utilities/annotations.service';
@@ -23,7 +23,8 @@ import { VideoService } from './utilities/video.service';
     LayersStore,
     KeyboardService,
     ControlsService,
-  ]
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
   constructor(

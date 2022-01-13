@@ -25,7 +25,6 @@ import { VideoTime } from '../interfaces/VideoTime';
 import { ControlsService } from './controls.service';
 import { FILES_CHANGE } from './files-change';
 import { LayersStore } from './layers.store';
-import { secondsToTimecode } from './secondsToTimecode';
 import {
   frameByFrame,
   getCurrentTimeOperator,

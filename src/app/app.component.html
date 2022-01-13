@@ -59,12 +59,14 @@
 
   <span>Time:
 
-    <ng-container>{{ video.currentTime$ | push | timecode : (video.fps$ | push) }}</ng-container></span>
+    <ng-container>{{ video.currentTime$ | push | timecode : (video.fps$ | push) }}</ng-container>
+  </span>
   <span>Frame:
 
     <ng-container>{{ video.currentFrame$ | push }}</ng-container> /
 
-    <ng-container>{{ video.totalFrames$ | push }}</ng-container></span>
+    <ng-container>{{ video.totalFrames$ | push }}</ng-container>
+  </span>
 
   <div>
     <timeline></timeline>
