@@ -1,15 +1,19 @@
 import { NgModule } from '@angular/core';
+import { PushModule } from '@rx-angular/template';
 
 import { FileValueAccessor } from './file_value_accessor';
-import { PushPipe } from './push.pipe';
 
 @NgModule({
+  imports: [
+    PushModule,
+  ],
   declarations: [
-    PushPipe,
+    // PushPipe,
     FileValueAccessor,
   ],
   exports: [
-    PushPipe,
+    PushModule,
+    // PushPipe,
     FileValueAccessor,
   ]
 })

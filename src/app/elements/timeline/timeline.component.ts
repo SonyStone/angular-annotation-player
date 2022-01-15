@@ -54,7 +54,6 @@ export class TimelineComponent implements OnDestroy {
   readonly svgTimeline$ = svgTimeline(this.width$, this.video.duration$, this.video.fps$)
   readonly svgPath$ = this.svgTimeline$.pipe(map(({ svgPath }) => svgPath));
   readonly svgTexts$ = this.svgTimeline$.pipe(map(({ svgText }) => svgText));
-
   
   @ViewChild('sliderDragZone', { static: true })
   set sliderDragZone(element: ElementRef<SVGRectElement>) {
