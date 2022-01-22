@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, map } from 'rxjs';
 
-export const DEFAULT_BRUSH_COLOR = '#ffffff';
-
 const COMPOSITE_OPERATIONS = [
   'source-over',
   // // 'source-in',
@@ -33,13 +31,14 @@ const COMPOSITE_OPERATIONS = [
 ]
 
 @Injectable()
-export class BrushService {
-  color$ = new BehaviorSubject(DEFAULT_BRUSH_COLOR);
-  size$ = new BehaviorSubject(20);
+export class CompositeOperation extends BehaviorSubject<string> {
 
-  compositeOperations = COMPOSITE_OPERATIONS.map((value) => ({ name: value, value }))
-  compositeOperation$ = new BehaviorSubject(COMPOSITE_OPERATIONS[0]);
+  list = COMPOSITE_OPERATIONS.map((value) => ({ name: value, value }));
 
-  isPen$ = this.compositeOperation$.pipe(map((v) => v === COMPOSITE_OPERATIONS[0]));
-  isEraser$ = this.compositeOperation$.pipe(map((v) => v === COMPOSITE_OPERATIONS[1]))
+  isPen$ = this.pipe(map((v) => v === COMPOSITE_OPERATIONS[0]));
+  isEraser$ = this.pipe(map((v) => v === COMPOSITE_OPERATIONS[1]))
+
+  constructor() {
+    super(COMPOSITE_OPERATIONS[0])
+  }
 }

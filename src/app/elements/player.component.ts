@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
 
-import { VideoService } from '../utilities/video.service';
+import { VideoSrc } from '../utilities/video/video-src';
 
 @Component({
   selector: 'player',
@@ -8,7 +8,7 @@ import { VideoService } from '../utilities/video.service';
   <div class="column-container">
     <div class="wrapper">
       <canvas paint></canvas>
-      <video *ngIf="video.src$ | push"></video>
+      <video *ngIf="videoSrc$ | push"></video>
     </div>
   </div>
   `,
@@ -16,8 +16,8 @@ import { VideoService } from '../utilities/video.service';
     :host {
       display: flex;
       place-content: center;
-      flex: 1 0 0;
-      height: 0;
+      flex: 1 0 auto;
+      /* height: 0; */
       background-color: black;
       overflow: hidden;
     }
@@ -63,6 +63,6 @@ import { VideoService } from '../utilities/video.service';
 export class PlayerComponent {
 
   constructor(
-    @Inject(VideoService) readonly video: VideoService,
+    @Inject(VideoSrc) readonly videoSrc$: VideoSrc,
   ) { }
 }

@@ -1,7 +1,7 @@
 import { Directive, ElementRef, Inject } from '@angular/core';
 
-import { LayersStore } from '../utilities/layers.store';
-import { VideoService } from '../utilities/video.service';
+import { Annotations } from '../utilities/layers.store';
+import { VideoElement } from '../utilities/video/video-element';
 
 /**
  * Слушатели на <video> элементе
@@ -14,10 +14,10 @@ import { VideoService } from '../utilities/video.service';
 export class VideoDirective  {
   constructor(
     @Inject(ElementRef) readonly elementRef: ElementRef<HTMLVideoElement>,
-    @Inject(VideoService) readonly video: VideoService,
-    @Inject(LayersStore) readonly store: LayersStore,
+    @Inject(VideoElement) readonly videoElement: VideoElement,
+    @Inject(Annotations) readonly store: Annotations,
   ) {
-    video.video$.next(elementRef.nativeElement);
+    videoElement.next(elementRef.nativeElement);
   }
 }
 

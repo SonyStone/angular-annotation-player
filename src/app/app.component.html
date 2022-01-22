@@ -9,13 +9,13 @@
   <div>
     <files-input></files-input>
 
-    <button (click)="controls.pen()"
-            [disabled]="(brush.isPen$ | push)">
+    <button (click)="pen.next()"
+            [disabled]="(pen.isSelected$ | push)">
       <icon-pen></icon-pen>
     </button>
 
-    <button (click)="controls.eraser()"
-            [disabled]="(brush.isEraser$ | push)">
+    <button (click)="eraser.next()"
+            [disabled]="(eraser.isSelected$ | push)">
       <icon-eraser></icon-eraser>
     </button>
     <color-selector></color-selector>
@@ -24,29 +24,29 @@
   </div>
 
   <div class="action">
-    <button (click)="controls.previousComment()">
+    <button (click)="previousComment.next()">
       <icon-skip-previous></icon-skip-previous>
     </button>
-    <button (click)="controls.previousFrame()"
-            (pointerdown)="controls.rewind($event)"
-            (pointerup)="controls.rewind($event)"
-            (pointerleave)="controls.rewind($event)">
+    <button (click)="previousFrame.next()"
+            (pointerdown)="rewind.next($event)"
+            (pointerup)="rewind.next($event)"
+            (pointerleave)="rewind.next($event)">
       <icon-fast-rewind></icon-fast-rewind>
     </button>
-    <button (click)="controls.play()">
+    <button (click)="play.next()">
       <icon-play></icon-play>
     </button>
-    <button (click)="controls.pause()"
-            [disabled]="!(video.isPlaying$ | push)">
+    <button (click)="pause.next()"
+            [disabled]="!(isPlaying$ | push)">
       <icon-pause></icon-pause>
     </button>
-    <button (click)="controls.nextFrame()"
-            (pointerdown)="controls.forward($event)"
-            (pointerup)="controls.forward($event)"
-            (pointerleave)="controls.forward($event)">
+    <button (click)="nextFrame.next()"
+            (pointerdown)="forward.next($event)"
+            (pointerup)="forward.next($event)"
+            (pointerleave)="forward.next($event)">
       <icon-fast-forward></icon-fast-forward>
     </button>
-    <button (click)="controls.nextComment()">
+    <button (click)="nextComment.next()">
       <icon-skip-next></icon-skip-next>
     </button>
   </div>
@@ -59,13 +59,13 @@
 
   <span>Time:
 
-    <ng-container>{{ video.currentTime$ | push | timecode : (video.fps$ | push) }}</ng-container>
+    <ng-container>{{ currentTime$ | push | timecode : (fps$ | push) }}</ng-container>
   </span>
   <span>Frame:
 
-    <ng-container>{{ video.currentFrame$ | push }}</ng-container> /
+    <ng-container>{{ currentFrame$ | push }}</ng-container> /
 
-    <ng-container>{{ video.totalFrames$ | push }}</ng-container>
+    <ng-container>{{ totalFrames$ | push }}</ng-container>
   </span>
 
   <div>
@@ -78,17 +78,17 @@
       <icon-save></icon-save>
     </button>
 
-    <button (click)="controls.undo()">
+    <button (click)="undo.next()">
       <icon-undo></icon-undo>
     </button>
-    <button (click)="controls.redo()">
+    <button (click)="redo.next()">
       <icon-redo></icon-redo>
     </button>
 
   </div>
 </div>
 
-<div class="comments">
+<!-- <div class="comments">
   <div class="comments_wrapper">
 
     <div class="add_comment">
@@ -97,23 +97,16 @@
       </button>
     </div>
 
-    <button *ngFor="let comment of (store.comments$ | push); let i = index"
+    <button *ngFor="let comment of (store.entities$ | push); let i = index"
             class="comment"
             (click)="store.selectLayer(i)"
-            [ngClass]="{'active': (store.currentLayerId$ | push) === i }">
-      <!-- <div class="comment_header">
-        <span>{{ comment.name }}</span>
-        <span>{{ comment.date | date }}</span>
-        <div class="avatar">N</div>
-      </div> -->
+            [ngClass]="{'active': (store.currentEntityIndex$ | push) === i }">
+
       <textarea class="comment_content"
                 [value]="comment.text"
                 textareaAutosize></textarea>
     </button>
 
   </div>
-</div>
-
-<!-- <div>
-  <p *ngFor="let layer of layers.layers">{{layer}}</p>
 </div> -->
+

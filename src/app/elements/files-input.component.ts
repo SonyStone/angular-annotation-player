@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
-import { Subject } from 'rxjs';
 
-import { FILES_CHANGE } from '../utilities/files-change';
+import { FileChange } from '../utilities/files-change';
 
 @Component({
   selector: 'files-input',
@@ -18,6 +17,6 @@ import { FILES_CHANGE } from '../utilities/files-change';
 
 export class FilesInputComponent {
   constructor(
-    @Inject(FILES_CHANGE) readonly filesInput: Subject<FileList>,
+    @Inject(FileChange) readonly filesInput: FileChange,
   ) { }
 }

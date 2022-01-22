@@ -1,13 +1,17 @@
 export class CanvasOffscreen {
-  canvas = new OffscreenCanvas(this.w, this.h);
+  canvas = document.createElement('canvas');
+
   readonly ctx = this.canvas.getContext('2d')! as any as CanvasRenderingContext2D;
 
-  constructor(
-    private w: number,
-    private h: number
-  ) {}
-
   readonly empty = this.ctx.createImageData(this.canvas.width, this.canvas.height);
+
+  constructor(
+    w: number,
+    h: number
+  ) {
+    this.canvas.width = w;
+    this.canvas.height = h;
+  }
 
   imageToImageData(image: CanvasImageSource): ImageData {
     this.clear();

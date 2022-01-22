@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, Inject, Injectable, OnDestroy } fro
 import { FormControl } from '@angular/forms';
 import { filter } from 'rxjs';
 
-import { LayersStore } from '../utilities/layers.store';
-import { VideoService } from '../utilities/video.service';
+import { Annotations } from '../utilities/layers.store';
+import { VideoFPS } from '../utilities/video/video-fps';
 
 const FRAME_RATES = [
   { name: 'film: 24', value: 24 },
@@ -26,7 +26,7 @@ export class FrameRateService implements OnDestroy {
   })
 
   constructor(
-    @Inject(LayersStore) private readonly store: LayersStore,
+    @Inject(Annotations) private readonly store: Annotations,
   ) {}
 
   ngOnDestroy(): void {
@@ -39,7 +39,7 @@ export class FrameRateService implements OnDestroy {
   selector: 'frame-rate-selector',
   template: `
 
-    <span>frame rate: {{ video.fps$ | push }}</span>
+    <span>frame rate: {{ fps$ | push }}</span>
     <select [formControl]="frameRate.control">
       <option *ngFor="let item of frameRates"
               [ngValue]="item.value">{{ item.name }}</option>
@@ -61,6 +61,6 @@ export class FrameRateSelectorComponent {
 
   constructor(
     readonly frameRate: FrameRateService,
-    @Inject(VideoService) readonly video: VideoService,
+    @Inject(VideoFPS) readonly fps$: VideoFPS,
   ) { }
 }

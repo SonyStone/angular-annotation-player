@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
 
-import { BrushService } from '../utilities/brush.service';
+import { BrushColor } from '../utilities/brush/brush-color';
 
 @Component({
   selector: 'color-selector',
   template: `
   
   <input type="color"
-       [ngModel]="brush.color$ | push"
-       (ngModelChange)="brush.color$.next($event)">
+       [ngModel]="color$ | push"
+       (ngModelChange)="color$.next($event)">
   
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -16,6 +16,6 @@ import { BrushService } from '../utilities/brush.service';
 export class ColorSelectorComponent {
 
   constructor(
-    @Inject(BrushService) readonly brush: BrushService,
+    @Inject(BrushColor) readonly color$: BrushColor,
   ) {}
 }

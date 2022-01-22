@@ -1,26 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg"
-     [attr.viewBox]="(viewBox$ | push)">
+<div class="slider-thumb"
+     [style.transform]="'translate(' + (thumb$ | push) + 'px)'">
+  <span>{{ (frame$ | push) }}</span>
+</div>
 
-  <rect #sliderDragZone
-        class="sliderDragZone"
-        style="cursor: e-resize;"
-        fill="#ddd"
+<svg xmlns="http://www.w3.org/2000/svg"
+     height="50"
+     [attr.width]="(width$ | push) ?? 0">
+
+  <rect class="sliderDragZone"
+        (drag)="slider.next($event)"
+        [attr.width]="(width$ | push) ?? 0"
         x="0"
-        y="20"
-        [attr.width]="((width$ | push) ?? 0) + 16"
+        y="26"
         height="10" />
 
+  <g *ngFor="let keyframe of (keyframes$ | push); let index = index">
+    <line class="line"
+          (drag)="keyframe.line.next($event)"
+          [attr.x1]="keyframe.frame[0] | push"
+          y1="20"
+          [attr.x2]="keyframe.frame[1] | push"
+          y2="20" />
+  </g>
 
-
-  <g *ngFor="let item of (timelineComments.store$ | push | keyvalue); trackBy: trackByFn; let i = index"
-     [comment]="item.key"
-     [width]="(width$ | push)"
-     style="cursor: e-resize;">
-    <ellipse cx="0.5"
-             cy="14"
-             rx="3"
-             ry="3"
-             fill="#00ff00" />
+  <g *ngFor="let keyframe of (keyframes$ | push); let index = index">
+    <ellipse class="keyframe"
+             (drag)="keyframe.key[0].next($event)"
+             [attr.cx]="keyframe.frame[0] | push"
+             cy="20"
+             rx="4"
+             ry="4" />
+    <ellipse class="keyframe"
+             (drag)="keyframe.key[1].next($event)"
+             [attr.cx]="keyframe.frame[1] | push"
+             cy="20"
+             rx="4"
+             ry="4" />
   </g>
 
   <path class="ruler"
@@ -30,16 +45,18 @@
         [attr.x]="svgText.transform"
         y="12">{{ svgText.text }}</text>
 
-        <g class="slider"
-        [attr.transform]="(translate$ | push)"
-        style="cursor: e-resize;">
-       <rect x="0"
-             y="10"
-             width="1"
-             height="12" />
-       <path d="M-8,30 h16 l-7,-8 h-1 z"
-             stroke="black"
-             fill="none"></path>
-     </g>
+  <g class="slider"
+     [attr.transform]="'translate(' + (translate$ | push) + ')'">
+    <line x1="0"
+          y1="10"
+          x2="0"
+          y2="28" />
+    <path d="M-8,36 h16 l-7.5,-8 h-1 z"></path>
+    <rect (drag)="slider.next($event)"
+          x="-12"
+          y="24"
+          height="20"
+          width="24" />
+  </g>
 
 </svg>

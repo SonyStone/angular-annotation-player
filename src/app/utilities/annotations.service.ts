@@ -1,44 +1,58 @@
 import { Inject, Injectable } from '@angular/core';
-import { combineLatest, filter, map, merge, Observable, shareReplay, Subject, switchMap, withLatestFrom } from 'rxjs';
+import { combineLatest, EMPTY, filter, map, merge, Observable, shareReplay, Subject, switchMap, withLatestFrom } from 'rxjs';
 
 import { Dimensions } from '../interfaces/Dimensions.interface';
 import { Frame } from '../interfaces/Frame';
-import { CanvasService } from './canvas.service';
+import { AppStore } from './app.store';
 import { CanvasOffscreen } from './CanvasOffscreen';
-import { FileHandler } from './FileHandler';
-import { FILES_CHANGE } from './files-change';
+import { Annotation, Entities } from './entity';
+import { FileHandler } from '../common/FileHandler';
+import { CommentFile } from './files-change';
 import { Layer } from './layer';
-import { LayersStore } from './layers.store';
 import { store } from './store';
-import { VideoService } from './video.service';
+import { VideoDimensions } from './video/video-dimensions';
 
+@Injectable()
+export class FileHandler$ {}
+
+@Injectable()
+export class CommentRestore {}
+
+@Injectable()
+export class CommentRemove {}
+
+@Injectable()
+export class CurrentImage {}
+
+@Injectable()
+export class Save {}
 
 @Injectable()
 export class AnnotationsService {
-  fileHandler$ = fileHandler(this.video.dimensions$);
+  fileHandler$ = fileHandler(this.dimensions$);
 
-  restore$ = commentRestore(commentFileChange(this.files$), this.fileHandler$);
+  restore$ = commentRestore(this.commentFile$, this.fileHandler$);
 
   remove$ = new Subject<Frame>();
   
-  currentImage$ = currentImage(this.video.currentFrame$, this.store.layer.current$);
+  // currentImage$ = currentImage(this.video.currentFrame$, this.store.entities$);
+  currentImage$ = EMPTY;
 
   save$ = new Subject<void>();
-  file$ = commentSaveFile(this.save$, this.store.store$, this.fileHandler$);
+  file$ = commentSaveFile(this.save$, this.store.store, this.fileHandler$);
 
   constructor(
-    @Inject(LayersStore) private readonly store: LayersStore,
-    @Inject(FILES_CHANGE) private readonly files$: Observable<FileList>,
-    @Inject(CanvasService) private readonly canvas: CanvasService,
-    @Inject(VideoService) private readonly video: VideoService,
+    @Inject(AppStore) private readonly store: AppStore,
+    @Inject(CommentFile) private readonly commentFile$: CommentFile,
+    @Inject(VideoDimensions) private readonly dimensions$: VideoDimensions,
   ) {
-    this.canvas.paint$.pipe(
-      withLatestFrom(this.video.currentFrame$),
-    ).subscribe(([imageData, frame]) => this.store.layer.add(frame, imageData));
+    // this.canvas.paint$.pipe(
+    //   withLatestFrom(this.video.currentFrame$),
+    // ).subscribe(([imageData, frame]) => this.store.layer.add(frame, imageData));
 
-    this.restore$.subscribe((data) => {
-      this.store.set(data);
-    });
+    // this.restore$.subscribe((data) => {
+    //   this.store.set(data);
+    // });
   }
 }
 
@@ -94,13 +108,13 @@ export function commentCurrentImage(
 
 export function currentImage(
   currentFrame$: Observable<Frame>,
-  store$: Observable<{ [key: Frame]: ImageData; }>,
+  store$: Observable<Annotation[]>,
 ): Observable<ImageData | undefined> {
   return combineLatest([
     store$,
     currentFrame$,
   ]).pipe(
-    map(([sequence, frame])=> sequence?.[frame]),
+    map(([entities, frame]) => Entities.getImage(entities, frame)),
     shareReplay(),
   )
 }

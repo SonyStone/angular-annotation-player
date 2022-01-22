@@ -1,4 +1,4 @@
-import { CanvasOffscreen } from './CanvasOffscreen';
+import { CanvasOffscreen } from '../utilities/CanvasOffscreen';
 
 export class FileHandler<T> {
 

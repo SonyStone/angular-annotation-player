@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { AppCommonModule } from '../../common/common.module';
 import { CommentDirective } from './comment.directive';
+import { DragModule } from './drag.directive';
 import { TimelineComponent } from './timeline.component';
 
 @NgModule({
@@ -13,6 +14,7 @@ import { TimelineComponent } from './timeline.component';
     ReactiveFormsModule,
     [
       AppCommonModule,
+      DragModule,
     ],
   ],
   declarations: [

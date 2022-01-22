@@ -3,9 +3,11 @@ import { combineLatest, Subscription } from 'rxjs';
 
 import { Dimensions } from '../interfaces/Dimensions.interface';
 import { AnnotationsService } from '../utilities/annotations.service';
-import { CanvasService } from '../utilities/canvas.service';
+import { CanvasContext } from '../utilities/canvas/canvas-context';
+import { CanvasElement } from '../utilities/canvas/canvas-element';
 import { resize } from '../utilities/resize';
-import { VideoService } from '../utilities/video.service';
+import { VideoDimensions } from '../utilities/video/video-dimensions';
+import { VideoElement } from '../utilities/video/video-element';
 
 @Directive({
   selector: `canvas[paint]`,
@@ -17,15 +19,17 @@ export class CanvasPaintDirective implements OnDestroy {
 
   constructor(
     elementRef: ElementRef<HTMLCanvasElement>,
-    @Inject(CanvasService) canvasService: CanvasService,
+    @Inject(CanvasElement) canvasElement: CanvasElement,
+    @Inject(CanvasContext) ctx$: CanvasContext,
     @Inject(AnnotationsService) comments: AnnotationsService,
-    @Inject(VideoService) video: VideoService,
+    @Inject(VideoDimensions) dimensions$: VideoDimensions,
+    @Inject(VideoElement) videoElement: VideoElement,
   ) {
     const canvas = elementRef.nativeElement;
-    canvasService.canvas$.next(canvas);
+    canvasElement.next(canvas);
 
     this.subscription.add(
-      combineLatest([canvasService.ctx$, comments.currentImage$]).subscribe(([ctx, img]) => {
+      combineLatest([ctx$, comments.currentImage$]).subscribe(([ctx, img]) => {
         if (img) {
           ctx.putImageData(img, 0, 0);
         } else {
@@ -35,7 +39,7 @@ export class CanvasPaintDirective implements OnDestroy {
     );
 
     this.subscription.add(
-      video.dimensions$.subscribe((dimensions) => {
+      dimensions$.subscribe((dimensions) => {
         canvas.height = dimensions.height;
         canvas.width = dimensions.width;
       })
@@ -43,8 +47,8 @@ export class CanvasPaintDirective implements OnDestroy {
 
     this.subscription.add(
       combineLatest([
-        video.dimensions$,
-        resize(video.video$)
+        dimensions$,
+        resize(videoElement)
       ]).subscribe(([element, video]) => {    
         canvas.style.transform = resizeTo(element, video);
       })

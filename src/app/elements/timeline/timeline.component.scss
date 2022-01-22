@@ -2,22 +2,55 @@
   display: block;
   // position: relative;
   // width: 800px;
-  height: 40px;
+  // height: 50px;
   // background-color: blue;
   touch-action: none;
+  position: relative;
 
   --color-7-middlegray: #777;
   --color-8-uppergray: #888;
 }
 
+.slider-thumb {
+  display: block;
+  // top: -30%;
+  left: 1;
+  position: absolute;
+  background-color: white;
+  z-index: 1;
+}
+
 svg {
+
+  .sliderDragZone {
+    cursor: e-resize;
+    fill: #ddd;
+    transition: fill .2s ease;
+    &:hover {
+      fill: #d4d4d4;
+    }
+  }
+
   .ruler {
-    stroke-width: 1px;
+    stroke-width: 0.5px;
     stroke: var(--color-7-middlegray);
   }
 
   .slider {
-    pointer-events: none;
+    cursor: e-resize;
+    // pointer-events: none;
+    rect {
+      fill: #00000000;
+      transition: fill .2s ease;
+      &:hover {
+        fill: #00000020;
+      }
+    }
+    line, path {
+      stroke-width: 1px;
+      stroke: black;
+      fill: none;
+    }
   }
 
   text {
@@ -25,5 +58,26 @@ svg {
     fill: var(--color-8-uppergray);
     pointer-events: none;
     user-select: none;
+  }
+
+  .line {
+    // cursor: e-resize;
+    stroke-width: 10px;
+    stroke: orange;
+    transition: stroke .2s ease;
+    stroke-linecap: round;
+    &:hover {
+      stroke: red;
+    }
+  }
+
+  .keyframe {
+    fill: yellow;
+    stroke: orange;
+    stroke-width: 2px;
+    transition: fill .2s ease;
+    &:hover {
+      fill: red;
+    }
   }
 }

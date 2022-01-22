@@ -1,12 +1,11 @@
 import { Directive, ElementRef, Inject, Input, OnDestroy, Renderer2 } from '@angular/core';
 import { combineLatest, first, map, merge, pipe, Subject, Subscription, switchMapTo, takeUntil, withLatestFrom } from 'rxjs';
+import { VideoTotalFrames } from 'src/app/utilities/video/video-total-frames';
 
 import { pointerdown, pointermove, pointerup } from '../../events/pointer';
 import { Frame } from '../../interfaces/Frame';
 import { TimelinePosition } from '../../interfaces/TimelinePosition';
-import { VideoService } from '../../utilities/video.service';
-import { TimelineCommentsService } from '../../utilities/timeline-comment-store';
-import { LayersStore } from '../../utilities/layers.store';
+import { Annotations } from '../../utilities/layers.store';
 
 const START_OFFEST = 8
 
@@ -33,7 +32,7 @@ export class CommentDirective implements OnDestroy {
   private move$ = pointermove(this.element);
 
   private toFrame = pipe(
-    withLatestFrom<PointerEvent, [Frame, number]>(this.video.totalFrames$, this.width$),
+    withLatestFrom<PointerEvent, [Frame, number]>(this.totalFrames$, this.width$),
     map(([pointerEvent, duration, width]) => {
       const pointerX = pointerEvent.offsetX - START_OFFEST;
 
@@ -63,9 +62,8 @@ export class CommentDirective implements OnDestroy {
   constructor(
     private readonly render: Renderer2,
     private readonly elementRef: ElementRef<Element>,
-    @Inject(TimelineCommentsService) readonly timelineComments: TimelineCommentsService,
-    @Inject(VideoService) private readonly video: VideoService,
-    @Inject(LayersStore) store: LayersStore,
+    @Inject(Annotations) store: Annotations,
+    @Inject(VideoTotalFrames) private readonly totalFrames$: VideoTotalFrames,
   ) {
     this.subscription.add(
       this.lastChange$.pipe(
@@ -81,7 +79,7 @@ export class CommentDirective implements OnDestroy {
 
     this.subscription.add(
       combineLatest([
-        merge(this.drag$, this.frame$), this.video.totalFrames$, this.width$])
+        merge(this.drag$, this.frame$), this.totalFrames$, this.width$])
       .pipe(
       map(([time, duration, width]) => ((time / duration * width) || 0) as TimelinePosition),
     ).subscribe((translate) => {

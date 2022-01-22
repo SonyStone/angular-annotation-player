@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
 
-import { BrushService } from '../utilities/brush.service';
+import { BrushSize } from '../utilities/brush/brush-size';
 
 @Component({
   selector: 'brush-size-selector',
@@ -8,14 +8,14 @@ import { BrushService } from '../utilities/brush.service';
     <input type="range"
          min="0.1"
          max="50"
-         [ngModel]="brush.size$ | push"
-         (ngModelChange)="brush.size$.next($event)">
+         [ngModel]="size$ | push"
+         (ngModelChange)="size$.next($event)">
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
 export class BrushSizeSelectComponent {
   constructor(
-    @Inject(BrushService) readonly brush: BrushService,
+    @Inject(BrushSize) readonly size$: BrushSize,
   ) { }
 }
