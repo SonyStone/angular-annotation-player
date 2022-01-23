@@ -13,6 +13,8 @@ import {
   withLatestFrom,
 } from 'rxjs';
 import { AnonymousSubject, Subject } from 'rxjs/internal/Subject';
+import { windowBy } from 'src/app/common/window-by';
+
 import { ThumbTranslate } from './thumb';
 
 @Injectable()
@@ -92,23 +94,3 @@ function offsetDrag(
 }
 
 
-
-function windowBy<T extends PointerEvent>(fn: (value: T) => boolean) {
-  return function(source: Observable<T>): Observable<Observable<T>> {
-    return new Observable((subscriber) => source.subscribe({
-        next(value) {
-          if (fn(value)) {
-            subscriber.next(of(value));
-            subscriber.next(source);
-          }
-        },
-        error(error) {
-          subscriber.error(error);
-        },
-        complete() {
-          subscriber.complete();
-        }
-      })
-    )
-  }
-}

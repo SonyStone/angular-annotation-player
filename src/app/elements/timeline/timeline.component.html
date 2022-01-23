@@ -15,28 +15,25 @@
         height="10" />
 
   <g *ngFor="let keyframe of (keyframes$ | push); let index = index">
-    <line class="line"
-          (drag)="keyframe.line.next($event)"
-          [attr.x1]="keyframe.frame[0] | push"
-          y1="20"
-          [attr.x2]="keyframe.frame[1] | push"
-          y2="20" />
-  </g>
-
-  <g *ngFor="let keyframe of (keyframes$ | push); let index = index">
-    <ellipse class="keyframe"
-             (drag)="keyframe.key[0].next($event)"
-             [attr.cx]="keyframe.frame[0] | push"
-             cy="20"
-             rx="4"
-             ry="4" />
-    <ellipse class="keyframe"
-             (drag)="keyframe.key[1].next($event)"
-             [attr.cx]="keyframe.frame[1] | push"
-             cy="20"
-             rx="4"
-             ry="4" />
-  </g>
+      <line class="line"
+            (drag)="keyframe.line.next($event); keyframes$.line($event, index)"
+            [attr.x1]="keyframe.frame[0] | push"
+            y1="20"
+            [attr.x2]="keyframe.frame[1] | push"
+            y2="20" />
+      <ellipse class="keyframe"
+               (drag)="keyframe.key[0].next($event); keyframes$.start($event, index)"
+               [attr.cx]="keyframe.frame[0] | push"
+               cy="20"
+               rx="4"
+               ry="4" />
+      <ellipse class="keyframe"
+               (drag)="keyframe.key[1].next($event); keyframes$.end($event, index)"
+               [attr.cx]="keyframe.frame[1] | push"
+               cy="20"
+               rx="4"
+               ry="4" />
+    </g>
 
   <path class="ruler"
         [attr.d]="(svgPath$ | push)" />
