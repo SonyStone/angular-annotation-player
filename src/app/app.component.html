@@ -3,7 +3,8 @@
      (fileChange)="filesInput.next($event)">
 
 
-  <player scroll></player>
+  <player (scrollUp)="nextFrame.next()"
+          (scrollDown)="previousFrame.next()"></player>
 
 
   <div>
@@ -109,4 +110,3 @@
 
   </div>
 </div> -->
-

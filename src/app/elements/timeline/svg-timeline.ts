@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import { combineLatest, map, Observable, shareReplay } from 'rxjs';
 import { VideoDuration } from 'src/app/utilities/video/video-duration';
 import { VideoFPS } from 'src/app/utilities/video/video-fps';
+import { VideoTotalFrames } from 'src/app/utilities/video/video-total-frames';
 
 import { TimelineWidth } from './timeline-width';
 
@@ -40,25 +41,24 @@ export class SVGTimeline extends Observable<{
   constructor(
     @Inject(TimelineWidth) width$: TimelineWidth,
     @Inject(VideoFPS) fps$: VideoFPS,
-    @Inject(VideoDuration) duration$: VideoDuration,
+    @Inject(VideoTotalFrames) totalFrames$: VideoTotalFrames,
   ) {
     const source = combineLatest([
-      duration$,
-      fps$,
+      totalFrames$,
       width$,
     ]).pipe(
-      map(([duration, fps, width]) => {
+      map(([totalFrames, width]) => {
   
-        
-        const seconds = Math.floor(duration);
-  
+          
         let dPathAttribute: string = '';
   
-        const min_step_width = ((width - 16) / seconds);
-  
-        const step_time = getStepTime(min_step_width, 50, 1.1);
-        const step_frame = fps * step_time;
-        const step_px = min_step_width * step_time;
+        const min_step_width = ((width - 16) / totalFrames);
+
+        // console.log(`min_step_width`, min_step_width);
+
+        
+        const step_frame = getStepTime(min_step_width, 50, 1.1);
+        const step_px = min_step_width;
   
         const svgTextCoordinates = [];
   
@@ -68,7 +68,6 @@ export class SVGTimeline extends Observable<{
         const end = width - 16 + start;
   
         let frame = 0;
-        let time = 0;
         let positionX = start
         while (positionX <= end) {
   
@@ -79,8 +78,7 @@ export class SVGTimeline extends Observable<{
           dPathAttribute += `M${positionX},${y}V${RULER_THICKNESS}`;
   
           positionX += step_px;
-          time += step_time;
-          frame += step_frame;
+          frame += 1;
         }
   
         dPathAttribute += `M${end},${y}V${RULER_THICKNESS}`;
@@ -109,6 +107,6 @@ function getStepTime(stepWidth: number, minWidth: number, step = 2): number {
     }
   }
 
-  return getStep(1);
+  return getStep(0.01);
 }
 

@@ -50,7 +50,7 @@ export class SliderDrag extends Subject<TimelinePosition> {
   }
 }
 
-function isPosition(value: PointerEvent | TimelinePosition): value is PointerEvent {
+export function isPosition<T extends number>(value: PointerEvent | T): value is PointerEvent {
   return isNaN(value as any);
 }
 

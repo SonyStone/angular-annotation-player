@@ -14,7 +14,7 @@ export class VideoDuration extends Observable<VideoTime> {
     const source = video$.pipe(
       switchMap((video) => fromEvent<Event>(video, 'durationchange').pipe(
         withLatestFrom(frameSize$),
-        map(([_, frameSize]) => video.duration - (frameSize * 3) as VideoTime),
+        map(([_, frameSize]) => video.duration as VideoTime),
       )),
       shareReplay(),
     );

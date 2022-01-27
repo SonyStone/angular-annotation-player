@@ -4,9 +4,9 @@ import { VideoTime } from "../interfaces/VideoTime";
 export const videoTimeToFrame = (
   time: VideoTime,
   fps: number
-): Frame => Math.floor(time * fps) as Frame;
+): Frame => Math.round(time * fps) as Frame;
 
 export const frameToVideoTime = (
   frame: Frame,
   fps: number
-): VideoTime => (frame + 1) / fps as VideoTime;
+): VideoTime => frame / fps as VideoTime;

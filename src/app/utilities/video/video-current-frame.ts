@@ -17,7 +17,7 @@ export class VideoCurrentFrame extends Observable<Frame> {
       currentTime$,
       fps$,
     ]).pipe(
-      map(([time, fps]) => videoTimeToFrame(time, fps)),
+      map(([time, fps]) => videoTimeToFrame(time, fps) as Frame),
       shareReplay(),
     );
 

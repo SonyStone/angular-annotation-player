@@ -2,7 +2,7 @@ import { Inject, Injectable, OnDestroy } from '@angular/core';
 import { select } from '@ngneat/elf';
 import { addEntities, selectActiveEntity, selectEntities, setActiveId } from '@ngneat/elf-entities';
 import { produce } from 'immer';
-import { Subscription } from 'rxjs';
+import { filter, Observable, Subscription } from 'rxjs';
 
 import { Frame } from '../interfaces/Frame';
 import { VideoTime } from '../interfaces/VideoTime';
@@ -28,7 +28,7 @@ export class Annotations {
 
   store$ = this.store;
 
-  currentTime$ = this.store.store.pipe(select((state) => state.currentTime));
+  currentTime$ = this.store.store.pipe(select((state) => state.currentTime), filter((v) => !!v)) as Observable<VideoTime>;
   fps$ = this.store.store.pipe(select((state) => state.metadata.fps));
   src$ = this.store.store.pipe(select((state) => state.metadata.src));
 

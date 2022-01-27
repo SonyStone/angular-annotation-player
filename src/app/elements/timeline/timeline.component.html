@@ -1,6 +1,7 @@
 <div class="slider-thumb"
      [style.transform]="'translate(' + (thumb$ | push) + 'px)'">
   <span>{{ (frame$ | push) }}</span>
+  <!-- <input [value]="(frame$ | push)"> -->
 </div>
 
 <svg xmlns="http://www.w3.org/2000/svg"
@@ -14,26 +15,28 @@
         y="26"
         height="10" />
 
-  <g *ngFor="let keyframe of (keyframes$ | push); let index = index">
-      <line class="line"
-            (drag)="keyframe.line.next($event); keyframes$.line($event, index)"
-            [attr.x1]="keyframe.frame[0] | push"
-            y1="20"
-            [attr.x2]="keyframe.frame[1] | push"
-            y2="20" />
-      <ellipse class="keyframe"
-               (drag)="keyframe.key[0].next($event); keyframes$.start($event, index)"
-               [attr.cx]="keyframe.frame[0] | push"
-               cy="20"
-               rx="4"
-               ry="4" />
-      <ellipse class="keyframe"
-               (drag)="keyframe.key[1].next($event); keyframes$.end($event, index)"
-               [attr.cx]="keyframe.frame[1] | push"
-               cy="20"
-               rx="4"
-               ry="4" />
-    </g>
+  <g *ngFor="let keyframe$ of (keyframes$ | push); let index = index;">
+      <ng-container *ngIf="(keyframe$ | push) as keyframe">
+        <line class="line"
+              (drag)="keyframe$.move($event); thumb$.next($event.offsetX)"
+              [attr.x1]="keyframe[0]"
+              y1="20"
+              [attr.x2]="keyframe[1]"
+              y2="20" />
+        <ellipse class="keyframe"
+                 (drag)="keyframe$.move($event, 0); thumb$.next($event.offsetX)"
+                 [attr.cx]="keyframe[0]"
+                 cy="20"
+                 rx="4"
+                 ry="4" />
+        <ellipse class="keyframe"
+                 (drag)="keyframe$.move($event, 1); thumb$.next($event.offsetX)"
+                 [attr.cx]="keyframe[1] "
+                 cy="20"
+                 rx="4"
+                 ry="4" />
+    </ng-container>
+  </g>
 
   <path class="ruler"
         [attr.d]="(svgPath$ | push)" />

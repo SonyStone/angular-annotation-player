@@ -13,11 +13,13 @@
 
 .slider-thumb {
   display: block;
-  // top: -30%;
+  top: -10%;
   left: 1;
   position: absolute;
   background-color: white;
   z-index: 1;
+
+  input {}
 }
 
 svg {

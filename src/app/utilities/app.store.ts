@@ -2,6 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { createState, Reducer, Store, withProps } from '@ngneat/elf';
 import { withActiveId, withEntities } from '@ngneat/elf-entities';
 import { stateHistory } from '@ngneat/elf-state-history';
+import { FRAME_RATES } from '../elements/fps-selector.component';
 
 import { VideoTime } from '../interfaces/VideoTime';
 import { Annotation } from './entity';
@@ -14,13 +15,13 @@ export interface AppState {
     width: number | undefined,
     height: number | undefined,
   },
-  currentTime: VideoTime;
+  currentTime: VideoTime | undefined;
   // entities: Annotation[],
   // currentEntityIndex: number | undefined;
 }
 
 
-export const DEFAULT_FRAME_RATE = 29.97;
+export const DEFAULT_FRAME_RATE = FRAME_RATES[2].value;
 export function createInitialState(): AppState {
   return {
     metadata: {
@@ -32,7 +33,7 @@ export function createInitialState(): AppState {
       width: undefined,
       height: undefined,
     },
-    currentTime: 0 as VideoTime,
+    currentTime: undefined,
     // currentEntityIndex: undefined,
     // entities: [],
   };

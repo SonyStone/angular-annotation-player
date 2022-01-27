@@ -1,17 +1,15 @@
-import { KeyValue } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Inject, OnDestroy } from '@angular/core';
 import { map, merge, Observable, ReplaySubject, Subscription } from 'rxjs';
 import { store } from 'src/app/utilities/store';
-import { VideoCurrentFrame } from 'src/app/utilities/video/video-current-frame';
 
 import { Frame } from '../../interfaces/Frame';
 import { Annotations } from '../../utilities/layers.store';
-import { Keyframes } from './keyframes';
+import { Keyframes, KeyframesSource, TimelinePositionHandler } from './keyframes';
 import { SliderDrag } from './slider-drag';
 import { SliderTime } from './slider-time';
 import { SliderTransform } from './slider-transform';
 import { SVGPath, SVGTexts, SVGTimeline } from './svg-timeline';
-import { ThumbTranslate } from './thumb';
+import { ThumbFrame, ThumbTranslate } from './thumb';
 import { TimelineSize } from './timeline-size';
 import { TimelineWidth } from './timeline-width';
 
@@ -36,15 +34,19 @@ import { TimelineWidth } from './timeline-width';
     ],
     [
       ThumbTranslate,
+      ThumbFrame,
+      // KeyframesMove,
+      KeyframesSource,
       Keyframes,
+      TimelinePositionHandler,
     ],
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TimelineComponent implements OnDestroy {
 
-  trackByFn(_: number, item: KeyValue<Frame | string, ImageData>) {
-    return item.value;
+  trackByFn(_: number, item: [number, number]) {
+    return item;
   }
 
 
@@ -65,8 +67,9 @@ export class TimelineComponent implements OnDestroy {
     @Inject(SVGPath) readonly svgPath$: SVGPath,
     @Inject(SVGTexts) readonly svgTexts$: SVGTexts,
     @Inject(Keyframes) readonly keyframes$: Keyframes,
+    // @Inject(KeyframesMove) readonly keyframesMove: KeyframesMove,
     @Inject(Annotations) private readonly store: Annotations,
-    @Inject(VideoCurrentFrame) readonly frame$: VideoCurrentFrame,
+    @Inject(ThumbFrame) readonly frame$: ThumbFrame,
   ) {
     this.subscription.add(time$.subscribe((time) => store.setTime(time)));
 

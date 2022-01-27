@@ -11,7 +11,9 @@ export class VideoSrc extends Observable<string> {
       map((file) => URL.createObjectURL(file)),
       // map((src) => sanitizer.bypassSecurityTrustUrl(src) as string),
       // tap((v) => { console.log(`log-name`, `${v}`); }),
-      startWith('https://www.html5rocks.com/tutorials/video/basics/Chrome_ImF.ogv'),
+      
+      startWith('https://i.imgur.com/VITzz3j.mp4'),
+      // startWith('https://www.html5rocks.com/tutorials/video/basics/Chrome_ImF.ogv'),
       // startWith('https://mdn.github.io/learning-area/javascript/apis/video-audio/finished/video/sintel-short.mp4'),
       shareReplay(),
     );

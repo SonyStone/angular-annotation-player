@@ -1,31 +1,63 @@
-import { Directive, ElementRef, Inject, OnDestroy } from '@angular/core';
-import { fromEvent, map } from 'rxjs';
-
-import { Frame } from '../interfaces/Frame';
-import { OffsetByFrame } from '../utilities/actions/offset-by-frame';
+import { Directive, ElementRef, Inject, NgModule, OnDestroy, Output } from '@angular/core';
+import { connectable, filter, fromEvent } from 'rxjs';
 
 
 @Directive({
-  selector: '[scroll]',
+  selector: '[scrollUp]',
 })
-export class ScrollDirective implements OnDestroy {
+export class ScrollUpDirective implements OnDestroy {
 
   element = this.elementRef.nativeElement;
 
   scroll$ = fromEvent<WheelEvent>(this.element, 'wheel');
 
-  private readonly subscription = this.scroll$.pipe(
-    map((event) => ((event.deltaY > 0) ? 1 : -1) as Frame),
-  ).subscribe((frame) => {
-    this.offsetByFrame.next(frame);
-  })
+  @Output('scrollUp') scrollUp = connectable(this.scroll$.pipe(
+    filter((event) => (event.deltaY > 0),
+  )));
+
+  private readonly subscription = this.scrollUp.connect();
 
   constructor(
     @Inject(ElementRef) private readonly elementRef: ElementRef<Element>,
-    @Inject(OffsetByFrame) private readonly offsetByFrame: OffsetByFrame,
   ) {}
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
   }
 }
+
+@Directive({
+  selector: '[scrollDown]',
+})
+export class ScrollDownDirective implements OnDestroy {
+
+  element = this.elementRef.nativeElement;
+
+  scroll$ = fromEvent<WheelEvent>(this.element, 'wheel');
+
+  @Output('scrollDown') scrollUp = connectable(this.scroll$.pipe(
+    filter((event) => (event.deltaY < 0),
+  )));
+
+  private readonly subscription = this.scrollUp.connect();
+
+  constructor(
+    @Inject(ElementRef) private readonly elementRef: ElementRef<Element>,
+  ) {}
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
+}
+
+@NgModule({
+  declarations: [
+    ScrollDownDirective,
+    ScrollUpDirective,
+  ],
+  exports: [
+    ScrollDownDirective,
+    ScrollUpDirective,
+  ],
+})
+export class ScrollModule { }

@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { AppCommonModule } from '../../common/common.module';
-import { CommentDirective } from './comment.directive';
+import { ScrollModule } from '../video-scroll.directive';
 import { DragModule } from './drag.directive';
 import { TimelineComponent } from './timeline.component';
 
@@ -15,13 +15,11 @@ import { TimelineComponent } from './timeline.component';
     [
       AppCommonModule,
       DragModule,
+      ScrollModule,
     ],
   ],
   declarations: [
     TimelineComponent,
-    [
-      CommentDirective,
-    ],
   ],
   exports: [
     TimelineComponent,

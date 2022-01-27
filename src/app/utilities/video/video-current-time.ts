@@ -6,10 +6,12 @@ import {
   map,
   merge,
   Observable,
+  of,
   shareReplay,
   switchMap,
   switchMapTo,
   takeUntil,
+  tap,
   timer,
   withLatestFrom,
 } from 'rxjs';
@@ -39,19 +41,21 @@ export class VideoCurrentTime extends Observable<VideoTime> {
     const source = video$.pipe(
       switchMap((video) => merge(
         merge(
+          of(0 as VideoTime),
           store.currentTime$,
           offsetByFrames(video, offsetByFrame$, frameSize$, duration$),
-          frameByFrame(video, 1, forward$, frameSize$, duration$),
-          frameByFrame(video, -1, rewind$, frameSize$, duration$),
+          // frameByFrame(video, 1, forward$, frameSize$, duration$),
+          // frameByFrame(video, -1, rewind$, frameSize$, duration$),
           // offsetToNextComment(video, controls.nextComment$, store.currentLayer$, fps$, totalFrames$),
           // offsetToPreviousComment(video, controls.previousComment$, store.currentLayer$, fps$),
         ).pipe(
-          setCurrentTimeOperator(video)
+          setCurrentTimeOperator(video),
         ),
         videoPlaying(video).pipe(
           getCurrentTimeOperator(video),
         ),
       )),
+      tap((v) => { console.log(`CurrentTime`, v); }),
       shareReplay(),
     );
 

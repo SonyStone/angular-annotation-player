@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@angular/core';
-import { map, Observable, shareReplay } from 'rxjs';
+import { map, Observable, shareReplay, tap } from 'rxjs';
 
 import { VideoTime } from '../../interfaces/VideoTime';
 import { VideoFPS } from './video-fps';

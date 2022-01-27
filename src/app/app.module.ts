@@ -29,7 +29,7 @@ import { IconUndoModule } from './elements/icons/undo';
 import { PlayerComponent } from './elements/player.component';
 import { TimecodePipe } from './elements/timecode.pipe';
 import { TimelineModule } from './elements/timeline/timeline.module';
-import { ScrollDirective } from './elements/video-scroll.directive';
+import { ScrollModule } from './elements/video-scroll.directive';
 import { VideoDirective } from './elements/video.directive';
 
 @NgModule({
@@ -47,6 +47,7 @@ import { VideoDirective } from './elements/video.directive';
       TimelineModule,
       FileDropModule,
       AppCommonModule,
+      ScrollModule,
     ],
     [
       IconSkipPreviousModule,
@@ -74,7 +75,6 @@ import { VideoDirective } from './elements/video.directive';
     ],
     [
       ColorSelectorComponent,
-      ScrollDirective,
     ],
     [
       PlayerComponent,

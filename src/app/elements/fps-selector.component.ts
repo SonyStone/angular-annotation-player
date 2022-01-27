@@ -5,7 +5,7 @@ import { filter } from 'rxjs';
 import { Annotations } from '../utilities/layers.store';
 import { VideoFPS } from '../utilities/video/video-fps';
 
-const FRAME_RATES = [
+export const FRAME_RATES = [
   { name: 'film: 24', value: 24 },
   { name: 'NTSC: 29.97', value: 29.97 },
   { name: 'NTSC_Film: 23.976', value: 23.976 },
