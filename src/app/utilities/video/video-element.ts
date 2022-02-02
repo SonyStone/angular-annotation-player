@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@angular/core';
-import { combineLatest, map, Observable, ReplaySubject, shareReplay } from 'rxjs';
+import { combineLatest, map, Observable, ReplaySubject, shareReplay, tap } from 'rxjs';
 import { AnonymousSubject } from 'rxjs/internal/Subject';
 
 import { VideoSrc } from './video-src';

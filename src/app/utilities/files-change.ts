@@ -1,4 +1,4 @@
-import { Inject, Injectable, InjectionToken } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { filter, map, Observable, ReplaySubject, shareReplay } from 'rxjs';
 
 

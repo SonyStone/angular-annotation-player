@@ -1,87 +1,24 @@
-import { TextFieldModule } from '@angular/cdk/text-field';
 import { Injector, NgModule } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 
+import { AnnotationPlayerModule } from './annotation-player.module';
 import { AppComponent } from './app.component';
-import { AutosizeModule } from './common/autosize';
-import { AppCommonModule } from './common/common.module';
-import { BrushSizeSelectComponent } from './elements/brush-size-selector.component';
-import { CanvasPaintDirective } from './elements/canvas-paint.directive';
-import { ColorSelectorComponent } from './elements/color-selector.component';
-import { FileDownloadDirective } from './elements/file-download.directive';
-import { FileDropModule } from './elements/file-drop/file-drop.module';
-import { FilesInputComponent } from './elements/files-input.component';
-import { FrameRateSelectorComponent } from './elements/fps-selector.component';
-import { FramePipe } from './elements/frame.pipe';
-import { IconAddModule } from './elements/icons/add';
-import { IconEraserModule } from './elements/icons/eraser';
-import { IconFastForwardModule } from './elements/icons/fast-forward';
-import { IconFastRewindModule } from './elements/icons/fast-rewind';
-import { IconPauseModule } from './elements/icons/pause';
-import { IconPenModule } from './elements/icons/pen';
-import { IconPlayModule } from './elements/icons/play';
-import { IconRedoModule } from './elements/icons/redo';
-import { IconSaveModule } from './elements/icons/save';
-import { IconSkipNextModule } from './elements/icons/skip-next';
-import { IconSkipPreviousModule } from './elements/icons/skip-previous';
-import { IconUndoModule } from './elements/icons/undo';
-import { PlayerComponent } from './elements/player.component';
-import { TimecodePipe } from './elements/timecode.pipe';
-import { TimelineModule } from './elements/timeline/timeline.module';
-import { ScrollModule } from './elements/video-scroll.directive';
-import { VideoDirective } from './elements/video.directive';
+import { RxIfModule } from './common/rx_if';
 
 @NgModule({
   imports: [
     [
       BrowserModule,
-      FormsModule,
-      ReactiveFormsModule,
     ],
     [
-      AutosizeModule,
-      TextFieldModule,
+      RxIfModule,
     ],
     [
-      TimelineModule,
-      FileDropModule,
-      AppCommonModule,
-      ScrollModule,
-    ],
-    [
-      IconSkipPreviousModule,
-      IconSkipNextModule,
-      IconPlayModule,
-      IconPauseModule,
-      IconFastRewindModule,
-      IconFastForwardModule,
-      IconSaveModule,
-      IconUndoModule,
-      IconRedoModule,
-      IconAddModule,
-      IconPenModule,
-      IconEraserModule,
+      AnnotationPlayerModule
     ],
   ],
   declarations: [
     AppComponent,
-    CanvasPaintDirective,
-    FileDownloadDirective,
-    VideoDirective,
-    [
-      TimecodePipe,
-      FramePipe,
-    ],
-    [
-      ColorSelectorComponent,
-    ],
-    [
-      PlayerComponent,
-      FilesInputComponent,
-      BrushSizeSelectComponent,
-      FrameRateSelectorComponent,
-    ],
   ],
   bootstrap:    [
     AppComponent,

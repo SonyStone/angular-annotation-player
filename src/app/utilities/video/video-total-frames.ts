@@ -1,23 +1,30 @@
 import { Inject, Injectable } from '@angular/core';
-import { combineLatest, map, Observable, shareReplay } from 'rxjs';
-import { Frame } from '../../interfaces/Frame';
+import { combineLatest, fromEvent, map, Observable, shareReplay, switchMap } from 'rxjs';
+import { toVideoTime } from 'src/app/interfaces/VideoTime';
 
-import { VideoDuration } from './video-duration';
-import { VideoFPS } from './video-fps';
-import { videoTimeToFrame } from '../videoTimeToFrame';
+import { Frame } from '../../interfaces/Frame';
+import { VideoElement } from './video-element';
+import { VideoFrameSize } from './video-frame-size';
 
 
 @Injectable()
 export class VideoTotalFrames extends Observable<Frame> {
   constructor(
-    @Inject(VideoFPS) fps$: VideoFPS,
-    @Inject(VideoDuration) duration$: VideoDuration,
+    @Inject(VideoFrameSize) frameSize$: VideoFrameSize,
+    @Inject(VideoElement) video$: Observable<HTMLVideoElement>,
   ) {
+
+    const duration$ = video$.pipe(
+      switchMap((video) => fromEvent<Event>(video, 'durationchange').pipe(
+        map(() => toVideoTime(video.duration)),
+      )),
+    );
+
     const source = combineLatest([
       duration$,
-      fps$,
+      frameSize$,
     ]).pipe(
-      map(([time, fps]) => videoTimeToFrame(time, fps)),
+      map(([time, frameSize]) => Math.floor(time / frameSize) as Frame),
       shareReplay(),
     );
 

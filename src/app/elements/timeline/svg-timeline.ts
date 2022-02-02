@@ -1,7 +1,5 @@
 import { Inject, Injectable } from '@angular/core';
 import { combineLatest, map, Observable, shareReplay } from 'rxjs';
-import { VideoDuration } from 'src/app/utilities/video/video-duration';
-import { VideoFPS } from 'src/app/utilities/video/video-fps';
 import { VideoTotalFrames } from 'src/app/utilities/video/video-total-frames';
 
 import { TimelineWidth } from './timeline-width';
@@ -40,7 +38,6 @@ export class SVGTimeline extends Observable<{
 }> {
   constructor(
     @Inject(TimelineWidth) width$: TimelineWidth,
-    @Inject(VideoFPS) fps$: VideoFPS,
     @Inject(VideoTotalFrames) totalFrames$: VideoTotalFrames,
   ) {
     const source = combineLatest([

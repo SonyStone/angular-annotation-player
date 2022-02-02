@@ -35,11 +35,11 @@ export class ScrollDownDirective implements OnDestroy {
 
   scroll$ = fromEvent<WheelEvent>(this.element, 'wheel');
 
-  @Output('scrollDown') scrollUp = connectable(this.scroll$.pipe(
+  @Output('scrollDown') scrollDown = connectable(this.scroll$.pipe(
     filter((event) => (event.deltaY < 0),
   )));
 
-  private readonly subscription = this.scrollUp.connect();
+  private readonly subscription = this.scrollDown.connect();
 
   constructor(
     @Inject(ElementRef) private readonly elementRef: ElementRef<Element>,

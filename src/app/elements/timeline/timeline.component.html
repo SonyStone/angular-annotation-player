@@ -1,22 +1,21 @@
 <div class="slider-thumb"
      [style.transform]="'translate(' + (thumb$ | push) + 'px)'">
   <span>{{ (frame$ | push) }}</span>
-  <!-- <input [value]="(frame$ | push)"> -->
 </div>
 
 <svg xmlns="http://www.w3.org/2000/svg"
      height="50"
-     [attr.width]="(width$ | push) ?? 0">
+     [.width]="width$">
 
   <rect class="sliderDragZone"
-        (drag)="slider.next($event)"
-        [attr.width]="(width$ | push) ?? 0"
+        (drag)="slider$.next($event)"
+        [.width]="width$"
         x="0"
         y="26"
         height="10" />
 
   <g *ngFor="let keyframe$ of (keyframes$ | push); let index = index;">
-      <ng-container *ngIf="(keyframe$ | push) as keyframe">
+      <ng-container *rxIf="keyframe$ as keyframe">
         <line class="line"
               (drag)="keyframe$.move($event); thumb$.next($event.offsetX)"
               [attr.x1]="keyframe[0]"
@@ -40,19 +39,19 @@
 
   <path class="ruler"
         [attr.d]="(svgPath$ | push)" />
-  <text *ngFor="let svgText of (svgTexts$ | push); let index = index"
+  <!-- <text *ngFor="let svgText of (svgTexts$ | push); let index = index"
         [attr.key]="index"
         [attr.x]="svgText.transform"
-        y="12">{{ svgText.text }}</text>
+        y="12">{{ svgText.text }}</text> -->
 
   <g class="slider"
-     [attr.transform]="'translate(' + (translate$ | push) + ')'">
+     [attr.transform]="'translate(' + (slider$ | push) + ')'">
     <line x1="0"
           y1="10"
           x2="0"
           y2="28" />
     <path d="M-8,36 h16 l-7.5,-8 h-1 z"></path>
-    <rect (drag)="slider.next($event)"
+    <rect (drag)="slider$.next($event)"
           x="-12"
           y="24"
           height="20"

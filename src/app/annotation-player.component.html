@@ -1,0 +1,107 @@
+<div class="player"
+     fileDrop
+     (fileChange)="filesInput.next($event)">
+
+
+  <player (scrollUp)="currentFrame$.nextFrame()"
+          (scrollDown)="currentFrame$.previousFrame()"></player>
+
+
+  <div>
+    <files-input></files-input>
+
+    <button (click)="composite.selectPen()"
+            [disabled]="(composite.isPen$ | push)">
+      <icon-pen></icon-pen>
+    </button>
+
+    <button (click)="composite.selectEraser()"
+            [disabled]="(composite.isEraser$ | push)">
+      <icon-eraser></icon-eraser>
+    </button>
+    <color-selector></color-selector>
+
+    <brush-size-selector></brush-size-selector>
+  </div>
+
+  <div class="action">
+    <button (click)="currentFrame$.firstFrame()">
+      <icon-skip-previous></icon-skip-previous>
+    </button>
+    <button (click)="currentFrame$.previousFrame()"
+            (hold)="currentFrame$.previousFrame()">
+      <icon-fast-rewind></icon-fast-rewind>
+    </button>
+    <button (click)="isPlaying$.toggle()">
+      <icon-play></icon-play>
+    </button>
+    <button (click)="isPlaying$.pause()"
+            [disabled]="!(isPlaying$ | push)">
+      <icon-pause></icon-pause>
+    </button>
+    <button (click)="currentFrame$.nextFrame()"
+            (hold)="currentFrame$.nextFrame()">
+      <icon-fast-forward></icon-fast-forward>
+    </button>
+    <button (click)="currentFrame$.lastFrame()">
+      <icon-skip-next></icon-skip-next>
+    </button>
+  </div>
+
+  <!-- <div>
+    <button (click)="comments.clear$.next()">clear</button>
+  </div> -->
+
+  <frame-rate-selector></frame-rate-selector>
+
+  <span>Time:
+
+    <ng-container>{{ currentFrame$ | push | timecode : (frameSize$ | push) }}</ng-container>
+  </span>
+  <span>Frame:
+
+    <ng-container>{{ currentFrame$ | push }}</ng-container> /
+
+    <ng-container>{{ totalFrames$ | push }}</ng-container>
+  </span>
+
+  <div>
+    <timeline></timeline>
+  </div>
+
+  <div>
+    <button (click)="saveFile$.next()"
+            [file]="(saveFile$ | push)">
+      <icon-save></icon-save>
+    </button>
+
+    <button (click)="history.undo()">
+      <icon-undo></icon-undo>
+    </button>
+    <button (click)="history.redo()">
+      <icon-redo></icon-redo>
+    </button>
+
+  </div>
+</div>
+
+<div class="comments">
+  <div class="comments_wrapper">
+
+    <div class="add_comment">
+      <button (click)="annotations$.addComment()">
+        <icon-add></icon-add>
+      </button>
+    </div>
+
+    <button *ngFor="let comment of (annotations$.annotations$ | push); let i = index"
+            class="comment"
+            (click)="annotations$.selectLayer(i)">
+
+      <!-- <textarea class="comment_content"
+                [value]="comment.text"
+                textareaAutosize></textarea> -->
+    </button>
+
+  </div>
+</div>

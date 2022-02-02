@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { map, Observable, shareReplay, tap } from 'rxjs';
 
-import { VideoTime } from '../../interfaces/VideoTime';
+import { getFrameSize, VideoTime } from '../../interfaces/VideoTime';
 import { VideoFPS } from './video-fps';
 
 @Injectable()
@@ -10,7 +10,7 @@ export class VideoFrameSize extends Observable<VideoTime> {
     @Inject(VideoFPS) fps$: VideoFPS,
   ) {
     const source = fps$.pipe(
-      map((fps) => (1 / fps) as VideoTime),
+      map((fps) => getFrameSize(fps)),
       shareReplay(),
     );
 

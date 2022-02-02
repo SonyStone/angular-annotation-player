@@ -1,67 +1,56 @@
 import { Inject, Injectable } from '@angular/core';
-import { mapTo, merge, Observable, scan, share, shareReplay, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, filter, fromEvent, mapTo, merge, shareReplay, switchMap, tap } from 'rxjs';
+import { AnonymousSubject } from 'rxjs/internal/Subject';
 
-import { Pause } from '../actions/pause';
-import { Play } from '../actions/play';
 import { VideoElement } from './video-element';
 
 @Injectable()
-export class VideoIsPlaying extends Observable<boolean> {
+export class VideoIsPlaying extends AnonymousSubject<boolean> {
+
+  private isPlaying: boolean;
+
   constructor(
     @Inject(VideoElement) video$: VideoElement,
-    @Inject(Play) play$: Play,
-    @Inject(Pause) pause$: Pause,
   ) {
+    const destination = new BehaviorSubject<boolean>(false);
+
     const source = video$.pipe(
-      switchMap((video) => playPauseControls(play$, pause$).pipe(
-        tap((isPlay) => {
-          if (isPlay) {
-            video.play();
-          } else {
-            video.pause();
-          }
-        })
+      switchMap((video) => merge(
+        destination.pipe(
+          filter((isPlaying) => {
+            if (isPlaying) {
+              video.play()
+            } else {
+              video.pause()
+            }
+    
+            return false
+          }),
+        ),
+        fromEvent(video, 'play').pipe(mapTo(true)),
+        fromEvent(video, 'pause').pipe(mapTo(false)),
       )),
+      tap((isPlaying) => {
+        this.isPlaying = isPlaying;
+      }),
+      tap((v) => { console.log(`log-IsPlaying`, v); }),
       shareReplay(),
     );
 
-    super((subscriber) => source.subscribe(subscriber));
+    super(destination, source);
+
+    this.isPlaying = destination.value;
   }
-}
 
-function playPauseControls(
-  playPause$: Observable<unknown>,
-  pause$: Observable<unknown>,
-): Observable<boolean> {
-  return toggle(merge(
-    playPause$.pipe(mapTo(PlayControl.Toggle)),
-    pause$.pipe(mapTo(PlayControl.Pause)),
-  ));
-}
+  play(): void {
+    this.next(true);
+  }
 
-export function toggle(
-  toggle$: Observable<PlayControl>,
-): Observable<boolean> {
-  return toggle$.pipe(
-    scan((accumulator: boolean, value: PlayControl) => {
-      switch (value) {
-        case PlayControl.Toggle:
-          accumulator = !accumulator;
-          return accumulator;
-        case PlayControl.Play:
-          return true;
-        case PlayControl.Pause:
-          return false;
-        default:
-          return accumulator;
-      }
-    }, false),
-    share(),
-  )
-}
+  pause(): void {
+    this.next(false);
+  }
 
-enum PlayControl {
-  Toggle,
-  Play,
-  Pause,
+  toggle(): void {
+    this.next(!this.isPlaying);
+  }
 }

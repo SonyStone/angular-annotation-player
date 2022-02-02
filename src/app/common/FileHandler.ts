@@ -1,6 +1,6 @@
-import { CanvasOffscreen } from '../utilities/CanvasOffscreen';
+import { CanvasOffscreen } from './CanvasOffscreen';
 
-export class FileHandler<T> {
+export class ImageFileHandler<T> {
 
   constructor(
     private readonly canvas: CanvasOffscreen
@@ -8,23 +8,36 @@ export class FileHandler<T> {
 
   async restore(file: File): Promise<T> {
     const json = await readJsonFile(file);
+
+    // 1. Parse json and get all base64 images
     const base64Images: string[] = getBase64List(json);
+
+    // 2. Convert all base64 images into ImageData
     const images = await Promise.all(base64Images
       .map((item) => base64ToImage(item)
         .then((image) => this.canvas.imageToImageData(image)))
     );
     const map = mapTwoArrays(base64Images, images);
-    return getData(json, map);
+
+    // 3. Parse json and replase all base64 images with ImageData;
+    return getImageData(json, map);
   }
 
   async save(data: T): Promise<File> {
+
+    // 1. Parse obj as json and get all ImageData
     const images: ImageData[] = getImageDataList(data);
+
+    // 2. Convert all ImageData into base64 images
     const base64Images = await Promise.all(
       images
         .map((img) => this.canvas.imageDataToBlop(img)
           .then((blob) => blobToBase64(blob))));
     const map = mapTwoArrays(images, base64Images);
+
+    // 3. Parse obj as json and replase all ImageData with base64 images
     const json = getJson(data, map);
+
     return createJsonFile(json);
   }
 }
@@ -102,8 +115,8 @@ function getBase64List(json: string): string[] {
   return base64Images;
 }
 
-function getData(json: string, map: Map<string | ArrayBuffer, ImageData>): any {
-  return JSON.parse(json, (key, value) => {
+function getImageData(json: string, map: Map<string | ArrayBuffer, ImageData>): any {
+  return JSON.parse(json, (_, value) => {
       
     if (typeof value === 'string' && map.has(value)) {
       return map.get(value);

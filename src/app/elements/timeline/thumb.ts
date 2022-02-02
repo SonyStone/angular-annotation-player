@@ -4,12 +4,12 @@ import { AnonymousSubject, Subject } from 'rxjs/internal/Subject';
 import { Frame } from 'src/app/interfaces/Frame';
 import { VideoCurrentFrame } from 'src/app/utilities/video/video-current-frame';
 
-import { SliderTransform } from './slider-transform';
+import { SliderPosition } from './slider';
 
 @Injectable()
 export class ThumbTranslate extends AnonymousSubject<number> {
   constructor(
-    @Inject(SliderTransform) translate$: SliderTransform,
+    @Inject(SliderPosition) translate$: SliderPosition,
   ) {
     const destination = new Subject<number>()
     const source = merge(destination, translate$);

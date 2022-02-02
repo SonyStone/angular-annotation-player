@@ -25,7 +25,7 @@ import { AnonymousSubject, Subject } from 'rxjs/internal/Subject';
 import { windowBy } from 'src/app/common/window-by';
 import { Frame } from 'src/app/interfaces/Frame';
 import { VideoTotalFrames } from 'src/app/utilities/video/video-total-frames';
-import { isPosition } from './slider-drag';
+import { isPosition } from './slider';
 
 import { TimelineWidth } from './timeline-width';
 
@@ -139,46 +139,6 @@ export class Keyframes extends Observable<KeyframesMove[]> {
   }
 }
 
-export class OffsetPointer extends Subject<number> {
-
-  private readonly destination = new Subject<PointerEvent | number>()
-
-  constructor() {
-    super();
-
-    const source = this.destination.pipe(
-      groupBy((value) => isPosition(value)),
-      mergeMap((group$) => group$.key
-        ? (group$ as Observable<PointerEvent>).pipe(
-          windowBy((event) => event.type === 'pointerdown'),
-          switchMap((event) => event.pipe(
-            offset2(),
-          )),
-        )
-        : (group$ as Observable<number>)
-      ),
-    )
-
-    this.source = source;
-  }
-
-  next(value: PointerEvent | number): void {
-    this.destination.next(value);
-  }
-
-  error(err: any): void {
-    this.destination.error(err);
-  }
-
-  complete(): void {
-    this.destination.complete();
-  }
-
-  /** @internal */
-  protected _subscribe(subscriber: Subscriber<number>): Subscription {
-    return this.source?.subscribe(subscriber) ?? Subscription.EMPTY;
-  }
-}
 
 export class TimelineKeyframe extends Subject<[number, number]> {
   destination = new Subject<[Frame, Frame]>();
@@ -222,7 +182,19 @@ export class KeyframesMove extends Subject<[number, number]> {
 
   private frames$ = new TimelineKeyframe(this.width$);
   private destination = new ReplaySubject<[number, number]>(1);
-  private pointer = new OffsetPointer();
+  private pointer = new Subject<PointerEvent | number>();
+  private pointer$ = this.pointer.pipe(
+    groupBy((value) => isPosition(value)),
+    mergeMap((group$) => group$.key
+      ? (group$ as Observable<PointerEvent>).pipe(
+        windowBy((event) => event.type === 'pointerdown'),
+        switchMap((event) => event.pipe(
+          offset2(),
+        )),
+      )
+      : (group$ as Observable<number>)
+    ),
+  )
 
   key: number | undefined = undefined;
   
@@ -235,7 +207,7 @@ export class KeyframesMove extends Subject<[number, number]> {
       this.next(v)
     })
 
-    const move$ = this.pointer.pipe(
+    const move$ = this.pointer$.pipe(
       withLatestFrom(this.destination, width$),
       map(([offset, keyframe, width]) => keyframe.map((k) => Math.round((k + offset) / width)) as [Frame, Frame]),
       tap((v) => { console.log(`log-name`, v); }),

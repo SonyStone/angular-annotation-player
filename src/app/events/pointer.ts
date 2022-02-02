@@ -1,34 +1,40 @@
-import { exhaustMap, first, fromEvent, merge, startWith, takeUntil, tap } from 'rxjs';
+import { exhaustMap, first, fromEvent, merge, Observable, startWith, takeUntil, tap } from 'rxjs';
 
 
-export const pointerdown = (element: Element) => fromEvent<PointerEvent>(element, 'pointerdown').pipe(
-  tap((evt) => {
-    element.setPointerCapture(evt.pointerId);
-    evt.preventDefault();
-    evt.stopPropagation();
-  }),
-);
+export function pointerdown(element: Element): Observable<PointerEvent> {
+  return fromEvent<PointerEvent>(element, 'pointerdown').pipe(
+    tap((evt) => {
+      element.setPointerCapture(evt.pointerId);
+      evt.preventDefault();
+      evt.stopPropagation();
+    }),
+  );
+}
 
-export const pointermove = (element: Element) => fromEvent<PointerEvent>(element, 'pointermove');
+export function pointermove(element: Element): Observable<PointerEvent> {
+  return fromEvent<PointerEvent>(element, 'pointermove');
+}
 
-export const pointerup = (element: Element) => merge(
-  fromEvent<PointerEvent>(element, 'pointerup'),
-  fromEvent<PointerEvent>(element, 'pointerleave'),
-  fromEvent<PointerEvent>(element, 'pointercancel'),
-  // fromEvent<PointerEvent>(element, 'pointerout'),
-).pipe(
-  tap((evt) => {
-    element.releasePointerCapture(evt.pointerId);
-  }),
-  first(),
-);
+export function pointerup(element: Element): Observable<PointerEvent> {
+  return merge(
+    fromEvent<PointerEvent>(element, 'pointerup'),
+    fromEvent<PointerEvent>(element, 'pointerleave'),
+    fromEvent<PointerEvent>(element, 'pointercancel'),
+    // fromEvent<PointerEvent>(element, 'pointerout'),
+  ).pipe(
+    tap((evt) => {
+      element.releasePointerCapture(evt.pointerId);
+    }),
+    first(),
+  );
+}
 
-export const pointerdrag = (
-  element: Element,
-) => pointerdown(element).pipe(
-    exhaustMap((downEvent) => pointermove(element).pipe(
-      startWith(downEvent),
+export function pointerdrag(element: Element): Observable<PointerEvent> {
+  return pointerdown(element).pipe(
+    exhaustMap((event) => pointermove(element).pipe(
+      startWith(event),
       takeUntil(pointerup(element))
     ),
-  ),
-);
+    ),
+  );
+}

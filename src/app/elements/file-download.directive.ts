@@ -8,7 +8,7 @@ export class FileDownloadDirective implements OnDestroy {
 
   private a = this.document.createElement('a');
 
-  @Input('file') set src(file: File | null) {
+  @Input('file') set src(file: File | null | void) {
     if (file) {
       const downloadLink = URL.createObjectURL(file)
 

@@ -5,7 +5,7 @@ import { VideoTotalFrames } from 'src/app/utilities/video/video-total-frames';
 import { pointerdown, pointermove, pointerup } from '../../events/pointer';
 import { Frame } from '../../interfaces/Frame';
 import { TimelinePosition } from '../../interfaces/TimelinePosition';
-import { Annotations } from '../../utilities/layers.store';
+import { CurrentAnnotation } from '../../utilities/store/layers.store';
 
 const START_OFFEST = 8
 
@@ -62,7 +62,7 @@ export class CommentDirective implements OnDestroy {
   constructor(
     private readonly render: Renderer2,
     private readonly elementRef: ElementRef<Element>,
-    @Inject(Annotations) store: Annotations,
+    @Inject(CurrentAnnotation) store: CurrentAnnotation,
     @Inject(VideoTotalFrames) private readonly totalFrames$: VideoTotalFrames,
   ) {
     this.subscription.add(
@@ -70,7 +70,7 @@ export class CommentDirective implements OnDestroy {
         withLatestFrom(this.frame$),
         map(([drag, frame]) => [frame, drag]),
       ).subscribe(([from, to]) => {
-        store.layer.move(from, to);
+        store.move(from, to);
         // timelineComments.move$.next(data as [Frame, Frame]);
       })
     )

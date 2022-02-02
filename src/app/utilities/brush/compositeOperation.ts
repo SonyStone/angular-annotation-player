@@ -41,4 +41,12 @@ export class CompositeOperation extends BehaviorSubject<string> {
   constructor() {
     super(COMPOSITE_OPERATIONS[0])
   }
+
+  selectEraser() {
+    this.next('destination-out');
+  }
+
+  selectPen() {
+    this.next('source-over');
+  }
 }
