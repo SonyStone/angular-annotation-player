@@ -3,7 +3,7 @@ import { select } from '@ngneat/elf';
 import { BehaviorSubject, debounceTime, filter, shareReplay, Subject, Subscriber, Subscription, tap } from 'rxjs';
 import { FRAME_RATES, FrameRateOption } from 'src/app/interfaces/FrameRate';
 
-import { AppStore, write } from '../store/app.store';
+import { AppStore } from '../store/app.store';
 
 
 
@@ -25,9 +25,9 @@ export class VideoFPS extends BehaviorSubject<number> {
       filter((fps) => fps > 0 && fps < 9000),
       debounceTime(500),
     ).subscribe((fps) => {
-      store.update(write((state) => {
+      store.update((state) => {
         state.metadata.fps = fps;
-      }));
+      });
     })
 
 

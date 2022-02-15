@@ -14,35 +14,42 @@
         y="26"
         height="10" />
 
-  <g *ngFor="let keyframe$ of (keyframes$ | push); let index = index;">
-      <ng-container *rxIf="keyframe$ as keyframe">
-        <line class="line"
-              (drag)="keyframe$.move($event); thumb$.next($event.offsetX)"
-              [attr.x1]="keyframe[0]"
-              y1="20"
-              [attr.x2]="keyframe[1]"
-              y2="20" />
-        <ellipse class="keyframe"
-                 (drag)="keyframe$.move($event, 0); thumb$.next($event.offsetX)"
-                 [attr.cx]="keyframe[0]"
-                 cy="20"
-                 rx="4"
-                 ry="4" />
-        <ellipse class="keyframe"
-                 (drag)="keyframe$.move($event, 1); thumb$.next($event.offsetX)"
-                 [attr.cx]="keyframe[1] "
-                 cy="20"
-                 rx="4"
-                 ry="4" />
-    </ng-container>
+        
+
+  <g *ngFor="let keyframe of (keyframes$ | push); let index = index;"
+     [frameRange]="keyframe"
+     #frameRange="frameRange">
+
+     <g [frame-range]="keyframe"></g>
+
+    <!-- <ng-container *ngIf="frameRange.positions | push as positions">
+      <line class="line"
+            (drag)="frameRange.positions.all($event)"
+            [attr.x1]="positions[0]"
+            y1="20"
+            [attr.x2]="positions[1]"
+            y2="20" />
+      <ellipse class="keyframe"
+               (drag)="frameRange.positions.first($event)"
+               [attr.cx]="positions[0]"
+               cy="20"
+               rx="4"
+               ry="4" />
+      <ellipse class="keyframe"
+               (drag)="frameRange.positions.last($event)"
+               [attr.cx]="positions[1]"
+               cy="20"
+               rx="4"
+               ry="4" />
+    </ng-container> -->
   </g>
 
   <path class="ruler"
         [attr.d]="(svgPath$ | push)" />
   <!-- <text *ngFor="let svgText of (svgTexts$ | push); let index = index"
-        [attr.key]="index"
-        [attr.x]="svgText.transform"
-        y="12">{{ svgText.text }}</text> -->
+            [attr.key]="index"
+            [attr.x]="svgText.transform"
+            y="12">{{ svgText.text }}</text> -->
 
   <g class="slider"
      [attr.transform]="'translate(' + (slider$ | push) + ')'">
@@ -57,5 +64,7 @@
           height="20"
           width="24" />
   </g>
+
+
 
 </svg>

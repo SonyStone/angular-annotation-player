@@ -5,7 +5,7 @@ import { VideoTotalFrames } from 'src/app/utilities/video/video-total-frames';
 import { pointerdown, pointermove, pointerup } from '../../events/pointer';
 import { Frame } from '../../interfaces/Frame';
 import { TimelinePosition } from '../../interfaces/TimelinePosition';
-import { CurrentAnnotation } from '../../utilities/store/layers.store';
+import { CurrentAnnotation } from '../../utilities/store/annotations';
 
 const START_OFFEST = 8
 

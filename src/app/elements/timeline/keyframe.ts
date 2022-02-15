@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import {
+  BehaviorSubject,
   combineLatest,
   distinctUntilChanged,
   groupBy,
@@ -13,26 +14,30 @@ import {
   withLatestFrom,
 } from 'rxjs';
 import { Frame } from 'src/app/interfaces/Frame';
-import { VideoCurrentFrame } from 'src/app/utilities/video/video-current-frame';
 
 import { TimelinePosition } from '../../interfaces/TimelinePosition';
 import { TimelineRatio } from './timeline-ratio';
 
-
+@Injectable()
+export class Keyframe extends BehaviorSubject<Frame> {
+  constructor() {
+    super(1 as Frame)
+  }
+}
 
 /**
- * Slider → CurrentFrame ⇆ TimelinePosition
+ * Position → CurrentFrame ⇆ TimelinePosition
  */
 @Injectable()
-export class SliderPosition extends Subject<TimelinePosition> {
+export class Position extends Subject<TimelinePosition> {
 
   private readonly destination = new Subject<PointerEvent | TimelinePosition>();
   
   private subscription: Subscription;
 
   constructor(
-    @Inject(VideoCurrentFrame) currentFrame$: VideoCurrentFrame,
     @Inject(TimelineRatio) ratio$: TimelineRatio,
+    @Inject(Keyframe) keyframe$: Subject<Frame>,
   ) {
     super();
 
@@ -51,15 +56,15 @@ export class SliderPosition extends Subject<TimelinePosition> {
     );
 
     this.subscription = drag$.subscribe((frame) => {
-      currentFrame$.next(frame);
+      keyframe$.next(frame);
     });
 
-    const frame$: Observable<TimelinePosition> = combineLatest([currentFrame$, ratio$]).pipe(
+    const position$: Observable<TimelinePosition> = combineLatest([keyframe$, ratio$]).pipe(
       map(([frame, ratio]) => ratio.toPosition(frame)),
       shareReplay(),
     );
 
-    this.source = frame$;
+    this.source = position$;
   }
 
   next(value: PointerEvent | TimelinePosition): void {
@@ -85,8 +90,6 @@ export class SliderPosition extends Subject<TimelinePosition> {
 }
 
 
-
-
-export function isPosition<T extends number>(value: PointerEvent | T): value is PointerEvent {
+export function isPosition<T>(value: PointerEvent | T): value is PointerEvent {
   return isNaN(value as any);
 }

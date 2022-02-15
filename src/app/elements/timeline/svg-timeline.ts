@@ -9,7 +9,16 @@ export class SVGPath extends Observable<string> {
   constructor(
     @Inject(SVGTimeline) svgTimeline$: SVGTimeline,
   ) {
-    const source = svgTimeline$.pipe(map(({ svgPath }) => svgPath));
+    const source = svgTimeline$.pipe(map((points) => {
+      let dPathAttribute: string = '';
+      const y = RULER_THICKNESS - MEDIUM_MARK_THICKNESS;
+
+      for (const x of points) {
+        dPathAttribute += `M${x},${y}V${RULER_THICKNESS}`;
+      }
+      
+      return dPathAttribute;
+    }));
 
     super((subscriber) => source.subscribe(subscriber));
   }
@@ -25,17 +34,29 @@ export class SVGTexts extends Observable<SVGTextsData[]> {
   constructor(
     @Inject(SVGTimeline) svgTimeline$: SVGTimeline,
   ) {
-    const source = svgTimeline$.pipe(map(({ svgText }) => svgText));
+    const source = svgTimeline$.pipe(map((points) => {
+      const svgTextCoordinates = [];
+      let frame = 0;
+      for (const x of points) {
+        const text = `${Math.floor(frame)}`;
+        const transform = x + 2;
+
+        svgTextCoordinates.push({ transform, text });
+
+        frame += 1;
+      }
+
+      return svgTextCoordinates;
+    }));
 
     super((subscriber) => source.subscribe(subscriber));
   }
 }
 
+const PADDING = 8;
+
 @Injectable()
-export class SVGTimeline extends Observable<{
-  svgPath: string,
-  svgText: SVGTextsData[]
-}> {
+export class SVGTimeline extends Observable<number[]> {
   constructor(
     @Inject(TimelineWidth) width$: TimelineWidth,
     @Inject(VideoTotalFrames) totalFrames$: VideoTotalFrames,
@@ -45,42 +66,26 @@ export class SVGTimeline extends Observable<{
       width$,
     ]).pipe(
       map(([totalFrames, width]) => {
-  
-          
-        let dPathAttribute: string = '';
-  
+ 
         const min_step_width = ((width - 16) / totalFrames);
 
-        // console.log(`min_step_width`, min_step_width);
+        console.log(`min_step_width`, min_step_width);
 
-        
         const step_frame = getStepTime(min_step_width, 50, 1.1);
         const step_px = min_step_width;
+
+        const start = PADDING;
+        const end = width - PADDING;
   
-        const svgTextCoordinates = [];
-  
-        const y = RULER_THICKNESS - MEDIUM_MARK_THICKNESS;
-  
-        const start = 8;
-        const end = width - 16 + start;
-  
-        let frame = 0;
-        let positionX = start
-        while (positionX <= end) {
-  
-          let transform = positionX + 2;
-          const text = `${Math.floor(frame)}`;
-  
-          svgTextCoordinates.push({ transform, text });
-          dPathAttribute += `M${positionX},${y}V${RULER_THICKNESS}`;
-  
-          positionX += step_px;
-          frame += 1;
+        const points = [];
+        let x = start;
+        while (x <= end) {
+          points.push(x);
+          x += step_px;
         }
-  
-        dPathAttribute += `M${end},${y}V${RULER_THICKNESS}`;
+        points.push(end);
         
-        return { svgPath: dPathAttribute, svgText: svgTextCoordinates };
+        return points;
       }),
       shareReplay(),
     )

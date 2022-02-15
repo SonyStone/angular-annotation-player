@@ -6,6 +6,10 @@ import { RxIfModule } from 'src/app/common/rx_if';
 
 import { ScrollModule } from '../video-scroll.directive';
 import { DragModule } from './drag.directive';
+import { FrameRangeComponent } from './frame-range.component';
+import { FrameRangeDirective } from './frame-range.directive';
+import { FrameDirective } from './frame.directive';
+import { OffsetModule } from './offset.directive';
 import { TimelineComponent } from './timeline.component';
 import { WidthDirective } from './width.directive';
 
@@ -16,6 +20,7 @@ import { WidthDirective } from './width.directive';
     ReactiveFormsModule,
     [
       DragModule,
+      OffsetModule,
       ScrollModule,
       PushModule,
       RxIfModule,
@@ -24,6 +29,9 @@ import { WidthDirective } from './width.directive';
   declarations: [
     TimelineComponent,
     [
+      FrameRangeDirective,
+      FrameRangeComponent,
+      FrameDirective,
       WidthDirective,
     ],
   ],

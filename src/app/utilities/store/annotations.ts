@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@angular/core';
-import { addEntities, selectActiveEntity, selectAll, setActiveId } from '@ngneat/elf-entities';
+import { select } from '@ngneat/elf';
 
 import { Frame } from '../../interfaces/Frame';
 import { Annotation, AppStore } from './app.store';
@@ -34,7 +34,7 @@ export class Entities {
 @Injectable()
 export class Annotations {
 
-  annotations$ = this.store.pipe(selectAll());
+  annotations$ = this.store.pipe(select((state) => state.annotations));
 
   store$ = this.store;
 
@@ -44,36 +44,35 @@ export class Annotations {
 
 
   selectLayer(id: number): void {
-    this.store.update(setActiveId(id));
+    // this.store.update(setActiveId(id));
   }
 
   addComment(): void {
-    this.store.update(addEntities({
-      id: 1,
-      text: '',
-    }),);
+    this.store.update((state) => {
+      state.annotations.push({
+        text: '',
+      })
+    });
   }
 }
 
 @Injectable()
 export class CurrentAnnotation {
 
-  current$ = this.store.pipe(selectActiveEntity());
+  current$ = this.store.pipe(select((state) => state.annotations?.[0] ?? undefined ));
 
   constructor(
     @Inject(AppStore) private store: AppStore,
   ) {}
 
   add(frame: Frame, imageData: ImageData): void {
-
-    this.store.update(
-      addEntities({
-        id: 1,
+    this.store.update((state) => {
+      state.annotations.push({
         image: imageData,
         frame: [frame, frame + 10 as Frame],
         text: '',
-      }),
-    );
+      })
+    });
   }
 
   move(from: Frame, to: Frame): void {

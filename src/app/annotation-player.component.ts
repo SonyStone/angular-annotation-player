@@ -14,7 +14,7 @@ import { AppHistory } from './utilities/store/app.history';
 import { AppStore } from './utilities/store/app.store';
 import { CommentRestore } from './utilities/store/comment-restore';
 import { FileHandler } from './utilities/store/file-handler';
-import { Annotations, CurrentAnnotation } from './utilities/store/layers.store';
+import { Annotations, CurrentAnnotation } from './utilities/store/annotations';
 import { SaveFile } from './utilities/store/save-file';
 import { VideoCurrentFrame } from './utilities/video/video-current-frame';
 import { VideoDimensions } from './utilities/video/video-dimensions';

@@ -24,6 +24,11 @@
 
 svg {
 
+
+  .wrapper {
+    transform: scale(1);
+  }
+
   .sliderDragZone {
     cursor: e-resize;
     fill: #ddd;

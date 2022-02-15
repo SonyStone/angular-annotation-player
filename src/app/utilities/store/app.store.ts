@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { createState, Store, withProps } from '@ngneat/elf';
+import { createState, Reducer, ReducerContext, Store, StoreDef, withProps } from '@ngneat/elf';
 import { withActiveId, withEntities } from '@ngneat/elf-entities';
 import produce from 'immer';
 import { tap } from 'rxjs';
@@ -12,14 +12,14 @@ export interface AppState {
     fps: number,
     src: string,
   },
-  currentFrame: Frame | undefined;
+  // currentFrame: Frame | undefined;
   // entities: Annotation[],
   // currentEntityIndex: number | undefined;
 }
 
 
-export const DEFAULT_FRAME_RATE = FRAME_RATES[2].value;
-export function createInitialState(): AppState {
+const DEFAULT_FRAME_RATE = FRAME_RATES[2].value;
+function createAppState(): AppState {
   return {
     metadata: {
       fps: DEFAULT_FRAME_RATE,
@@ -29,46 +29,59 @@ export function createInitialState(): AppState {
       // src: 'https://www.html5rocks.com/tutorials/video/basics/Chrome_ImF.ogv',
       // src: 'https://mdn.github.io/learning-area/javascript/apis/video-audio/finished/video/sintel-short.mp4',
     },
-    currentFrame: undefined,
-    // currentEntityIndex: undefined,
-    // entities: [],
   };
 }
 
+export interface AnnotationState {
+  annotations: Annotation[]
+}
+
 export interface Annotation {
-  id: number;
   frame?: [Frame, Frame];
   image?: ImageData;
   text?: string;
 }
 
-type StoreDef = AppState & {
-  activeId: any;
-} & {
-  entities: Record<number, Annotation>;
-  ids: number[];
-}
 
-export function write<S>(updater: (state: S) => void): (state: S) => S {
-  return function (state) {
-    return produce(state, (draft) => {
-      updater(draft as S);
-    });
+function createAnnotationState(): AnnotationState {
+  return {
+    annotations: [
+      {
+        frame: [3, 5] as [Frame, Frame],
+        text: '3-5',
+      },
+      {
+        frame: [40, 90] as [Frame, Frame],
+        text: '40-90',
+      },
+      {
+        frame: [120, 200] as [Frame, Frame],
+        text: '120-200',
+      },
+      {
+        frame: [220, 300] as [Frame, Frame],
+        text: '220-300',
+      },
+      {
+        frame: [1000, 1300] as [Frame, Frame],
+        text: '1000-1300',
+      },
+    ],
   };
 }
 
 
 
+export type State = AppState & AnnotationState
+
 @Injectable()
-export class AppStore extends Store<{ state: StoreDef, name: string, config: never }> {
+export class AppStore extends Store<StoreDef<State>> {
 
   constructor() {
     const { state, config } = createState(
-      withEntities<Annotation>(),
-      withActiveId(),
-      withProps<AppState>(createInitialState()),
+      withProps<AppState>(createAppState()),
+      withProps<AnnotationState>(createAnnotationState()),
     );
-
     super({ state, name: 'store', config });
 
     this.pipe(
@@ -76,8 +89,19 @@ export class AppStore extends Store<{ state: StoreDef, name: string, config: nev
     ).subscribe()
   }
 
+  update(...reducers: ((state: State, context: ReducerContext) => void)[]): void {
+    super.update(...reducers.map((updater) => write(updater)));
+  }
+
   ngOnDestroy(): void {
     this.destroy();
   }
 }
 
+function write<S>(updater: (state: S, context: ReducerContext) => void): Reducer<S> {
+  return function (state, context) {
+    return produce(state, (draft) => {
+      updater(draft as S, context);
+    });
+  };
+}

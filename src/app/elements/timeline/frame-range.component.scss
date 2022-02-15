@@ -1,0 +1,20 @@
+.line {
+  stroke-width: 10px;
+  stroke: orange;
+  transition: stroke .2s ease;
+  stroke-linecap: round;
+
+  &:hover {
+    stroke: red;
+  }
+}
+
+.keyframe {
+  fill: yellow;
+  stroke: orange;
+  stroke-width: 2px;
+  transition: fill .2s ease;
+  &:hover {
+    fill: red;
+  }
+}

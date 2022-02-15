@@ -3,7 +3,7 @@ import { select } from '@ngneat/elf';
 import { map, Observable, shareReplay } from 'rxjs';
 
 import { VideoFile } from '../files-change';
-import { AppStore, write } from '../store/app.store';
+import { AppStore } from '../store/app.store';
 
 @Injectable()
 export class VideoSrc extends Observable<string> {
@@ -22,9 +22,9 @@ export class VideoSrc extends Observable<string> {
     );
 
     const subscription = src$.subscribe((src) => {
-      store.update(write((state) => {
+      store.update((state) => {
         state.metadata.src = src;
-      }))
+      })
     });
 
     super((subscriber) => source.subscribe(subscriber).add(subscription));

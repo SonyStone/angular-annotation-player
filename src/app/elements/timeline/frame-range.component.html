@@ -1,0 +1,23 @@
+<ng-container *ngIf="keyframes$ | push as keyframes">
+  <svg:line class="line"
+            (drag)="all($event)"
+            (frameOffset)="test($event)"
+            [attr.x1]="keyframes[0] | position"
+            y1="20"
+            [attr.x2]="keyframes[1] | position"
+            y2="20" />
+  <svg:ellipse class="keyframe"
+               (drag)="first($event)"
+               (frameOffset)="test($event)"
+               [attr.cx]="keyframes[0] | position"
+               cy="20"
+               rx="4"
+               ry="4" />
+  <svg:ellipse class="keyframe"
+               (drag)="last($event)"
+               (frameOffset)="test($event)"
+               [attr.cx]="keyframes[1] | position"
+               cy="20"
+               rx="4"
+               ry="4" />
+</ng-container>

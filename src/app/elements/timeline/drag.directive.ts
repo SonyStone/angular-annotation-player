@@ -19,6 +19,7 @@ export class DragDirective implements OnDestroy {
   }
 }
 
+
 @NgModule({
   declarations: [DragDirective],
   exports: [DragDirective],

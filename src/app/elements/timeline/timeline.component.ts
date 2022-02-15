@@ -3,10 +3,12 @@ import { map, merge, Observable, ReplaySubject, Subscription } from 'rxjs';
 import { store } from 'src/app/utilities/store';
 
 import { Frame } from '../../interfaces/Frame';
+import { Position } from './keyframe';
 import { Keyframes, KeyframesSource, TimelinePositionHandler } from './keyframes';
 import { SliderPosition } from './slider';
 import { SVGPath, SVGTexts, SVGTimeline } from './svg-timeline';
 import { ThumbFrame, ThumbTranslate } from './thumb';
+import { TimelineRatio } from './timeline-ratio';
 import { TimelineSize } from './timeline-size';
 import { TimelineWidth } from './timeline-width';
 
@@ -34,6 +36,7 @@ import { TimelineWidth } from './timeline-width';
       KeyframesSource,
       Keyframes,
       TimelinePositionHandler,
+      TimelineRatio,
     ],
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,7 +62,7 @@ export class TimelineComponent implements OnDestroy {
     @Inject(ThumbTranslate) readonly thumb$: ThumbTranslate,
     @Inject(SVGPath) readonly svgPath$: SVGPath,
     @Inject(SVGTexts) readonly svgTexts$: SVGTexts,
-    @Inject(Keyframes) readonly keyframes$: Keyframes,
+    @Inject(KeyframesSource) readonly keyframes$: KeyframesSource,
     @Inject(ThumbFrame) readonly frame$: ThumbFrame,
   ) {
 
